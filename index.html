@@ -82,7 +82,91 @@ const STAGES = [
   // STAGE 5: BOSS
   { id:5, name:'BOSS',  theme:'決戦', target: Infinity, speed:2.4, obsRate:0.0, insectRate:0.0, taxRate: 0.0, companyRate:0.0, meetingRate:0.0, celeryRate:0.0, anxietyRate:0.0, workRate:0.0, workSpawnMin: 0, workSpawnMax: 0, boss:true }
 ];
+// ====================================
+//  SOUND ENGINE (ここを追加)
+// ====================================
+const BGM_FREQS = [ 
+    130.81, 138.59, 146.83, 155.56, 164.81, 174.61, 185.00, 196.00,
+    207.65, 220.00, 233.08, 246.94, 261.63, 277.18, 293.66, 311.13,
+    329.63, 349.23, 369.99, 392.00, 415.30, 440.00, 466.16, 493.88,
+    523.25, 554.37, 587.33, 622.25, 659.25
+];
 
+const STAGE_BGM_DATA = [
+    { melody: [12,19,16,19,12,19,16,21,14,21,17,21,14,21,17,24], base: [0, 0, 5, 5, 7, 7, 0, 0], wave: 'square', tempo: 140, decay: 0.1 },
+    { melody: [16,-1,19,-1,17,-1,16,-1,12,-1,14,-1,11,-1,-1,-1], base: [4, 4, 5, 5, 0, 0, 7, 7], wave: 'triangle', tempo: 90, decay: 0.4 },
+    { melody: [12,12,24,-1,23,21,19,-1,17,17,15,14,12,-1,12,-1], base: [0, 3, 5, 7, 0, 3, 5, 10], wave: 'sawtooth', tempo: 120, decay: 0.2 },
+    { melody: [12,13,15,16,12,13,15,16,19,18,16,15,13,12,11,10], base: [0, 1, 3, 4, 0, 1, 3, 4], wave: 'sawtooth', tempo: 110, decay: 0.3, detune: true },
+    { melody: [12,24,12,24,15,27,15,27,17,29,17,29,19,31,19,31], base: [0,0,0,0,5,5,7,7,8,8,10,10,12,12,15,15], wave: 'square', tempo: 170, decay: 0.15, drum: true }
+];
+
+let bgmTimer = null;
+let bgmNoteIndex = 0;
+
+function playBgmNote(freq, type, vol, decay, detuneValue = 0) {
+    if (muted || freq <= 0) return;
+    try {
+        const c = audioCtx();
+        const now = c.currentTime;
+        const o = c.createOscillator();
+        const g = c.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, now);
+        if(detuneValue) o.detune.setValueAtTime(detuneValue, now);
+        o.connect(g); g.connect(c.destination);
+        g.gain.setValueAtTime(vol, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + decay);
+        o.start(now); o.stop(now + decay);
+    } catch(e) {}
+}
+
+function playBgmNoise(vol, decay) {
+    if (muted) return;
+    try {
+        const c = audioCtx();
+        const now = c.currentTime;
+        const bufferSize = c.sampleRate * decay;
+        const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+        const source = c.createBufferSource();
+        source.buffer = buffer;
+        const g = c.createGain();
+        g.gain.setValueAtTime(vol, now);
+        g.gain.exponentialRampToValueAtTime(0.01, now + decay);
+        source.connect(g); g.connect(c.destination);
+        source.start(now); source.stop(now + decay);
+    } catch(e) {}
+}
+
+function updateBgmSequencer() {
+    const isBgmState = ['PLAY', 'TITLE', 'CLEAR', 'TRANSITION'].includes(state);
+    if (!isBgmState) { stopBgm(); return; }
+
+    const d = STAGE_BGM_DATA[stageIndex];
+    if (!d) return;
+
+    const stepSec = 60 / d.tempo / 4;
+    const m = d.melody[bgmNoteIndex];
+    if (m !== -1 && m !== undefined) {
+        let det = d.detune ? Math.sin(Date.now() * 0.01) * 50 : 0;
+        playBgmNote(BGM_FREQS[m], d.wave, 0.06, d.decay, det);
+    }
+    if (bgmNoteIndex % 2 === 0) {
+        const b = d.base[(bgmNoteIndex / 2) % d.base.length];
+        if (b !== -1) playBgmNote(BGM_FREQS[b], 'triangle', 0.1, stepSec * 2);
+    }
+    if (d.drum && bgmNoteIndex % 4 === 0) playBgmNoise(0.04, 0.05);
+
+    bgmNoteIndex = (bgmNoteIndex + 1) % d.melody.length;
+    bgmTimer = setTimeout(updateBgmSequencer, stepSec * 1000);
+}
+
+function stopBgm() {
+    clearTimeout(bgmTimer);
+    bgmTimer = null;
+    bgmNoteIndex = 0;
+}
 // ボス攻撃パターン
 const BOSS_ATTACKS = ['MoaiThrow_Arc', 'MoaiThrow_Horizontal', 'MoaiThrow_Homing'];
 
@@ -212,15 +296,31 @@ function playFanfare(){
 
 const muteBtn = document.getElementById('mute');
 function updateMuteUI(){
-  muteBtn.textContent = muted ? '🔇 音OFF' : '🔊 音ON';
-  muteBtn.setAttribute('aria-pressed', String(!muted));
+  // --- 既存の処理 ---
+  muteBtn.textContent = muted ? '🔇 音OFF' : '🔊 音ON';
+  muteBtn.setAttribute('aria-pressed', String(!muted));
+
+  // --- ★ここから BGM連動を追記 ---
+  if (muted) {
+    // ミュートにしたらBGMタイマーを止める
+    if (bgmTimer) {
+      clearTimeout(bgmTimer);
+      bgmTimer = null;
+    }
+  } else {
+    // ミュート解除した時、ゲーム中ならBGMを再開する
+    const isPlaying = ['PLAY', 'TITLE', 'CLEAR', 'TRANSITION'].includes(state);
+    if (!bgmTimer && isPlaying) {
+      updateBgmSequencer();
+    }
+  }
 }
 muteBtn.addEventListener('click', ()=>{
   muted = !muted;
   updateMuteUI();
   if(!muted) beep(660,0.06,'square',0.2);
 });
-updateMuteUI();
+
 
 // ====================================
 //  GAME STATE (状態と変数)
@@ -774,6 +874,8 @@ function loadStage(idx){ // ステージ開始時の初期化
   } else {
     boss.active = false;
   }
+stopBgm();
+  updateBgmSequencer();
 }
 
 function startGame(){ 
@@ -1142,6 +1244,7 @@ function updatePlay(){
     document.getElementById('overTitle').textContent = 'GAME OVER';
     document.getElementById('scoreline').textContent = `SCORE: ${score} / BEST: ${best}`;
     overEl.style.display = 'flex';
+    stopBgm();
   }
 
   // Update UI (省略)
@@ -1203,6 +1306,7 @@ function updateEnding(){
             document.getElementById('scoreline').textContent = `FINAL SCORE: ${score}`;
             document.getElementById('retry').textContent = 'PLAY AGAIN';
             overEl.style.display = 'flex';
+            stopBgm();
         }
     }
 }
@@ -1373,6 +1477,7 @@ addEventListener('keydown', e=>{
 
 // START
 initGame();
+updateMuteUI();
 loop();
 
 })();
