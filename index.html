@@ -243,6 +243,109 @@
       padding: 6px 10px;
       font: 12px/1 'Press Start 2P', 'DotGothic16', monospace
     }
+
+    /* ===== キャラクター選択画面 ===== */
+    #char-select {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 20, 0.97);
+      z-index: 5;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    #char-select h2 {
+      color: #FFD700;
+      font-size: 14px;
+      text-shadow: 2px 2px 0 #000;
+      margin: 0;
+      letter-spacing: 2px;
+      animation: blinker 2s ease-in-out infinite;
+    }
+
+    .char-cards {
+      display: flex;
+      gap: 24px;
+      align-items: flex-end;
+    }
+
+    .char-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 14px 12px 10px;
+      border: 3px solid #2d3748;
+      border-radius: 16px;
+      background: linear-gradient(160deg, #1a1f35, #0d1022);
+      box-shadow: 0 6px 0 #000;
+      transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+      min-width: 100px;
+      user-select: none;
+    }
+
+    .char-card:hover,
+    .char-card.selected {
+      border-color: #FFD700;
+      box-shadow: 0 0 18px rgba(255,215,0,0.5), 0 6px 0 #000;
+      transform: translateY(-4px);
+    }
+
+    .char-card img {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.7));
+    }
+
+    .char-card .char-name {
+      font-size: 8px;
+      color: #e6f0ff;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .char-card .char-badge {
+      font-size: 7px;
+      color: #94a3b8;
+      text-align: center;
+    }
+
+    .char-card.selected .char-name {
+      color: #FFD700;
+    }
+
+    #char-go-btn {
+      background: linear-gradient(to bottom, #d97706, #92400e);
+      color: #fff;
+      border: 3px solid #f59e0b;
+      border-radius: 14px;
+      padding: 14px 32px;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #000;
+      transition: transform 0.1s, box-shadow 0.1s;
+      user-select: none;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    #char-go-btn.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #char-go-btn.active:hover {
+      transform: translateY(2px);
+      box-shadow: 0 4px 0 #000;
+    }
   </style>
 </head>
 
@@ -302,6 +405,24 @@
             <div id="scoreline" class="small"></div>
             <div class="btn" id="retry" style="width:160px;">BACK TO TITLE</div>
           </div>
+    </div>
+
+    <!-- ===== キャラクター選択画面 ===== -->
+    <div id="char-select">
+      <h2>SELECT YOUR UNIT</h2>
+      <div class="char-cards">
+        <div class="char-card" id="card-mark1" onclick="selectChar('mark1')">
+          <img src="moai_robo.png" alt="MOAI ROBO Mk.I">
+          <div class="char-name">MOAI ROBO<br>Mk.I</div>
+          <div class="char-badge">一号機</div>
+        </div>
+        <div class="char-card" id="card-mark2" onclick="selectChar('mark2')">
+          <img src="moai_robo_mark2.png" alt="MOAI ROBO Mk.II">
+          <div class="char-name">MOAI ROBO<br>Mk.II</div>
+          <div class="char-badge">二号機</div>
+        </div>
+      </div>
+      <div id="char-go-btn" onclick="confirmCharSelect()">▶ START</div>
     </div>
 
     <script>
@@ -442,6 +563,15 @@
         let moaiImageLoaded = false;
         moaiImage.onload = () => { moaiImageLoaded = true; };
         moaiImage.onerror = () => { console.error("Error loading moai_robo.png. Check file path."); };
+
+        const moaiMark2Image = new Image();
+        moaiMark2Image.src = 'moai_robo_mark2.png';
+        let moaiMark2ImageLoaded = false;
+        moaiMark2Image.onload = () => { moaiMark2ImageLoaded = true; };
+        moaiMark2Image.onerror = () => { console.error("Error loading moai_robo_mark2.png. Check file path."); };
+
+        // 選択中キャラクター: 'mark1' | 'mark2'
+        let selectedChar = 'mark1';
 
         const authorImage = new Image();
         authorImage.src = 'boss_author.png';
@@ -963,20 +1093,25 @@
         }
 
         function drawMoai() {
-          if (!moaiImageLoaded) return;
+          // キャラクター切り替え
+          const isMark2 = (selectedChar === 'mark2');
+          const useImg = isMark2 ? moaiMark2Image : moaiImage;
+          const imgLoaded = isMark2 ? moaiMark2ImageLoaded : moaiImageLoaded;
+          if (!imgLoaded) return;
 
           const x = player.x;
           const y = player.y;
           const bob = Math.sin(player.bob) * 1.5;
-          const frameWidth = 32;
-          const frameHeight = 48;
+          // Mark2は少し大きめ
+          const frameWidth = isMark2 ? 38 : 32;
+          const frameHeight = isMark2 ? 52 : 48;
 
           const drawX = x - frameWidth / 2;
           const drawY = y - frameHeight + bob;
 
           ctx.drawImage(
-            moaiImage,
-            0, 0, moaiImage.width, moaiImage.height,
+            useImg,
+            0, 0, useImg.width, useImg.height,
             drawX, drawY, frameWidth, frameHeight
           );
 
@@ -987,6 +1122,15 @@
 
             ctx.fillRect(dustX - 4, dustY, 4, 2);
             ctx.fillRect(dustX - 8, dustY + 2, 2, 2);
+
+            // Mark2のブースター排気エフェクト
+            if (isMark2) {
+              const ex = drawX + frameWidth * 0.8;
+              const ey = drawY + frameHeight * 0.3;
+              ctx.fillStyle = `rgba(100, 180, 255, ${0.4 + Math.sin(t * 0.3) * 0.3})`;
+              ctx.fillRect(ex, ey, 3, 2 + Math.floor(Math.random() * 3));
+              ctx.fillRect(ex + 4, ey - 1, 3, 2 + Math.floor(Math.random() * 3));
+            }
           }
         }
 
@@ -1398,20 +1542,43 @@
         }
 
         function startGame() {
-          // ★ ゲームスタートのロジック修正
+          // ★ ゲームスタートのロジック修正: キャラ選択画面へ
           if (state === 'START' || state === 'OVER') {
-            // ゲームの状態をリセット
-            score = 0;
-            lives = MAX_LIVES;
-
-            // ステージロード (loadStage内でstateはTITLEに変わる)
-            loadStage(0);
-
-            startEl.style.display = 'none';
-            overEl.style.display = 'none';
-            beep(660, 0.1, 'square', 0.2);
+            // キャラ選択画面を表示
+            document.getElementById('char-select').style.display = 'flex';
+            // 選択リセット
+            selectedChar = null;
+            document.getElementById('card-mark1').classList.remove('selected');
+            document.getElementById('card-mark2').classList.remove('selected');
+            document.getElementById('char-go-btn').classList.remove('active');
+            beep(660, 0.1, 'square', 0.15);
           }
         }
+
+        window.selectChar = function(ch) {
+          selectedChar = ch;
+          document.getElementById('card-mark1').classList.toggle('selected', ch === 'mark1');
+          document.getElementById('card-mark2').classList.toggle('selected', ch === 'mark2');
+          document.getElementById('char-go-btn').classList.add('active');
+          beep(880, 0.06, 'triangle', 0.15);
+        };
+
+        window.confirmCharSelect = function() {
+          if (!selectedChar) return;
+          document.getElementById('char-select').style.display = 'none';
+
+          // クレジットのヒーロー名を更新
+          CREDITS[7] = "Hero: MOAI ROBO " + (selectedChar === 'mark1' ? "Mk.I" : "Mk.II");
+
+          // ゲームの状態をリセット
+          score = 0;
+          lives = MAX_LIVES;
+          // ステージロード (loadStage内でstateはTITLEに変わる)
+          loadStage(0);
+          startEl.style.display = 'none';
+          overEl.style.display = 'none';
+          beep(660, 0.15, 'square', 0.2);
+        };
 
         function bossAttack() { /* 省略 */
           boss.attackTimer--;
