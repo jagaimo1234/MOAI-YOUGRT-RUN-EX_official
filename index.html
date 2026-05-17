@@ -53,12 +53,12 @@
       /* Dark Blue */
       color: #FFD700;
       /* Gold */
-      padding: 10px 10px 16px 10px;
+      padding: 14px 14px 20px 14px;
       font-family: 'Press Start 2P', 'DotGothic16', monospace;
       z-index: 10;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       border-bottom: 2px solid #444;
       box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
     }
@@ -67,13 +67,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 12px;
+      font-size: 16px;
     }
 
     #hud-vals {
       display: flex;
       justify-content: space-around;
-      font-size: 18px;
+      font-size: 24px;
     }
 
     .hud-val {
@@ -260,7 +260,7 @@
 
     #char-select h2 {
       color: #FFD700;
-      font-size: 14px;
+      font-size: 20px;
       text-shadow: 2px 2px 0 #000;
       margin: 0;
       letter-spacing: 2px;
@@ -269,7 +269,7 @@
 
     .char-cards {
       display: flex;
-      gap: 24px;
+      gap: 28px;
       align-items: flex-end;
     }
 
@@ -277,42 +277,42 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       cursor: pointer;
-      padding: 14px 12px 10px;
-      border: 3px solid #2d3748;
-      border-radius: 16px;
+      padding: 20px 16px 14px;
+      border: 4px solid #2d3748;
+      border-radius: 20px;
       background: linear-gradient(160deg, #1a1f35, #0d1022);
-      box-shadow: 0 6px 0 #000;
+      box-shadow: 0 8px 0 #000;
       transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
-      min-width: 100px;
+      min-width: 130px;
       user-select: none;
     }
 
     .char-card:hover,
     .char-card.selected {
       border-color: #FFD700;
-      box-shadow: 0 0 18px rgba(255,215,0,0.5), 0 6px 0 #000;
+      box-shadow: 0 0 24px rgba(255,215,0,0.6), 0 8px 0 #000;
       transform: translateY(-4px);
     }
 
     .char-card img {
-      width: 72px;
-      height: 72px;
+      width: 96px;
+      height: 96px;
       object-fit: contain;
       image-rendering: pixelated;
       filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.7));
     }
 
     .char-card .char-name {
-      font-size: 8px;
+      font-size: 12px;
       color: #e6f0ff;
       text-align: center;
       line-height: 1.6;
     }
 
     .char-card .char-badge {
-      font-size: 7px;
+      font-size: 10px;
       color: #94a3b8;
       text-align: center;
     }
@@ -325,10 +325,10 @@
       background: linear-gradient(to bottom, #d97706, #92400e);
       color: #fff;
       border: 3px solid #f59e0b;
-      border-radius: 14px;
-      padding: 14px 32px;
+      border-radius: 16px;
+      padding: 18px 40px;
       font-family: 'Press Start 2P', monospace;
-      font-size: 12px;
+      font-size: 16px;
       cursor: pointer;
       box-shadow: 0 6px 0 #000;
       transition: transform 0.1s, box-shadow 0.1s;
