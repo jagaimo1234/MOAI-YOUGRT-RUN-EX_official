@@ -124,6 +124,15 @@
       border-color: #63b3ed;
     }
 
+    .locked-btn {
+      opacity: 0.35 !important;
+      filter: grayscale(1) !important;
+      pointer-events: none !important;
+      border-color: #2d3748 !important;
+      color: #718096 !important;
+      box-shadow: 0 4px 0 #000 !important;
+    }
+
     .btn:active {
       background: #374151;
     }
@@ -2634,6 +2643,22 @@
           // Hearts visual + Number
           lfHeartsEl.textContent = '💛'.repeat(Math.max(0, lives));
           lfNumEl.textContent = lives;
+
+          const shotBtnEl = document.getElementById('shot');
+          if (shotBtnEl) {
+            const isMark2 = (selectedChar === 'mark2');
+            const isGold = (player.goldTimer > 0);
+            const canShootMark1 = (currentStage && currentStage.boss && boss && boss.active);
+            const canShoot = (isGold || isMark2 || canShootMark1);
+
+            if (canShoot) {
+              shotBtnEl.classList.remove('locked-btn');
+              shotBtnEl.innerHTML = 'SHOT';
+            } else {
+              shotBtnEl.classList.add('locked-btn');
+              shotBtnEl.innerHTML = '🔒 SHOT';
+            }
+          }
         }
 
         // ステージクリア後の更新ロジック
