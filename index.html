@@ -135,9 +135,9 @@
       align-items: center;
       justify-content: center;
       flex-direction: column;
-      gap: 16px;
-      padding-top: 60px; /* offset top HUD */
-      padding-bottom: 90px; /* offset bottom ctrls */
+      gap: 24px;
+      padding-top: 70px; /* offset top HUD */
+      padding-bottom: 160px; /* offset bottom ctrls & update banner */
       background: url('title_bg_mobile.jpg') no-repeat center center;
       background-size: cover;
       z-index: 4;
@@ -158,13 +158,13 @@
     }
 
     #title-logo {
-      width: 85%;
-      max-width: 400px;
-      max-height: 22vh;
+      width: 92%;
+      max-width: 480px;
+      max-height: 32vh;
       height: auto;
       object-fit: contain;
       image-rendering: pixelated;
-      margin-bottom: 10px;
+      margin-bottom: 16px;
       filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 0.5));
     }
 
@@ -205,12 +205,13 @@
 
     #copyright {
       position: absolute;
-      bottom: 20px;
+      bottom: 6px;
       font-family: 'Press Start 2P', cursive;
-      font-size: 10px;
+      font-size: 9px;
       color: #fff;
       text-shadow: 2px 2px 0 #000;
       text-align: center;
+      width: 100%;
     }
 
     /* Invisible clickable area for "PUSH START" to maintain touch support */
@@ -463,6 +464,13 @@
 
     /* Update Banner on Title Screen */
     .update-banner {
+      position: fixed;
+      bottom: 105px;
+      left: 16px;
+      right: 16px;
+      margin: 0 auto;
+      max-width: 360px;
+      z-index: 15;
       background: linear-gradient(135deg, #b45309, #d97706);
       border: 3px solid #fde047;
       border-radius: 20px;
@@ -476,8 +484,6 @@
       align-items: center;
       gap: 6px;
       animation: pulseGlow 2s infinite alternate;
-      margin-top: -5px;
-      margin-bottom: 5px;
     }
     .update-banner:active {
       transform: translateY(4px);
@@ -486,6 +492,14 @@
     @keyframes pulseGlow {
       from { box-shadow: 0 8px 0 #78350f, 0 0 12px rgba(253, 224, 71, 0.3); }
       to { box-shadow: 0 8px 0 #78350f, 0 0 28px rgba(253, 224, 71, 0.8); }
+    }
+
+    @keyframes floatHint {
+      0%, 100% { transform: translateY(0) rotate(6deg); opacity: 0.85; }
+      50% { transform: translateY(-4px) rotate(8deg); opacity: 1; }
+    }
+    .secret-hint {
+      animation: floatHint 3s infinite ease-in-out;
     }
   </style>
 </head>
@@ -518,9 +532,14 @@
       <div class="btn big-btn" id="shot">SHOT</div>
     </div>
 
-      <div id="start">
-      <!-- Logo as separate image for better mobile scaling -->
-      <img id="title-logo" src="title_logo.png" alt="MOAI ROBO YOGURT RUN EX">
+    <div id="start">
+      <!-- Logo container with hint tag -->
+      <div style="position: relative; text-align: center; width: 100%; display: flex; justify-content: center;">
+        <img id="title-logo" src="title_logo.png" alt="MOAI ROBO YOGURT RUN EX">
+        <div class="secret-hint" style="position: absolute; right: 8%; top: -5px; background: rgba(15, 23, 42, 0.85); border: 1px solid #FFD700; color: #FFD700; font-family: 'DotGothic16', monospace; font-size: 11px; padding: 4px 10px; border-radius: 12px; pointer-events: none; transform: rotate(6deg); text-shadow: 1px 1px 0 #000; box-shadow: 0 2px 8px rgba(0,0,0,0.8);">
+          💡 5回タップで何かが…!?
+        </div>
+      </div>
       <div class="update-banner" onclick="showUpdateModal()">
         <div style="color: #FFD700; font-family: 'Press Start 2P', monospace; font-size: 11px; text-shadow: 2px 2px 0 #000;">
           ★ UPDATE 2026.05.17 ★
