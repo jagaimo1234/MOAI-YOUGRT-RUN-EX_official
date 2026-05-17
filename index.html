@@ -365,6 +365,7 @@
       </div>
       <div id="hud-vals">
         <div class="hud-val" id="sc">0</div>
+        <div class="hud-val" id="ammo-display" style="color:#00e5ff">🍼 5</div>
         <div class="hud-val" id="tg">TIME</div>
       </div>
     </div>
@@ -379,6 +380,9 @@
       <div id="start">
       <!-- Logo as separate image for better mobile scaling -->
       <img id="title-logo" src="title_logo.png" alt="MOAI ROBO YOGURT RUN EX">
+      <div style="text-align: center; color: #FFD700; text-shadow: 2px 2px 0 #000; font-family: 'DotGothic16', monospace; font-size: 14px; margin-top: -10px;">
+        ★ MAJOR UPDATE ★<br><span style="font-size:11px;">モアイロボMk.IIモード追加！</span>
+      </div>
 
       <!-- The main interaction button -->
           <div id="go" class="retro-text blink" style="cursor:pointer; padding:20px;">
@@ -397,7 +401,11 @@
         <div class="btn" style="padding:4px 8px; font-size:10px;" onclick="startDebugGame(2)">3</div>
         <div class="btn" style="padding:4px 8px; font-size:10px;" onclick="startDebugGame(3)">4</div>
         <div class="btn" style="padding:4px 8px; font-size:10px;" onclick="startDebugGame(4)">BOSS</div>
-         
+        <div style="flex-basis: 100%; height: 0;"></div>
+        <div class="btn" style="padding:4px 8px; font-size:10px;" onclick="startDebugGame(6)">裏1</div>
+        <div class="btn" style="padding:4px 8px; font-size:10px;" onclick="startDebugGame(7)">裏2</div>
+        <div class="btn" style="padding:4px 8px; font-size:10px;" onclick="startDebugGame(8)">裏3</div>
+        <div class="btn" style="padding:4px 8px; font-size:10px;" onclick="startDebugGame(9)">裏4</div>
       </div>
 
         <div id="over">
@@ -435,6 +443,7 @@
         // Reserve 90px for controls (was 120px in 240w, 180px in 360w)
         const G = { W: 180, H: 320, GROUND: 320 - 90 };
         const MAX_LIVES = 10;
+        const GOLD_YOGURT_RATE = 0.05; // ゴールドヨーグルトの出現確率（現在は5%）
 
         // ステージ設定
         const STAGES = [
@@ -448,6 +457,13 @@
           { id: 4, name: 'INNER', theme: '不安と感情', target: 1200, speed: 2.8, obsRate: 1.5, insectRate: 0.25, taxRate: 0.3, companyRate: 0.0, meetingRate: 0.0, celeryRate: 0.0, anxietyRate: 0.3, workRate: 0.5, workSpawnMin: 180, workSpawnMax: 350 },
           // STAGE 5: BOSS
           { id: 5, name: 'BOSS', theme: '決戦', target: Infinity, speed: 2.4, obsRate: 0.0, insectRate: 0.0, taxRate: 0.0, companyRate: 0.0, meetingRate: 0.0, celeryRate: 0.0, anxietyRate: 0.0, workRate: 0.0, workSpawnMin: 0, workSpawnMax: 0, boss: true }
+        ];
+
+        const URA_STAGE_INFO = [
+          { name: "FALSE DAWN", theme: "偽りの夜明け" },
+          { name: "BLOOD SUN", theme: "血塗られた日" },
+          { name: "VENOMOUS DUSK", theme: "毒液の黄昏" },
+          { name: "THE VOID", theme: "虚無の深淵" }
         ];
         // ====================================
         //  SOUND ENGINE (ここを追加)
@@ -570,6 +586,16 @@
         moaiMark2Image.onload = () => { moaiMark2ImageLoaded = true; };
         moaiMark2Image.onerror = () => { console.error("Error loading moai_robo_mark2.png. Check file path."); };
 
+        const moaiGoldImage = new Image();
+        moaiGoldImage.src = 'moai_robo_mark2_gold.png?v=' + (Date.now() + 102);
+        let moaiGoldImageLoaded = false;
+        moaiGoldImage.onload = () => { moaiGoldImageLoaded = true; };
+
+        const goldItemImage = new Image();
+        goldItemImage.src = 'item_yogurt_gold.png?v=' + (Date.now() + 103);
+        let goldItemImageLoaded = false;
+        goldItemImage.onload = () => { goldItemImageLoaded = true; };
+
         // 選択中キャラクター: 'mark1' | 'mark2'
         let selectedChar = 'mark1';
 
@@ -594,6 +620,17 @@
         let moaiShotImageLoaded = false;
         moaiShotImage.onload = () => { moaiShotImageLoaded = true; };
         moaiShotImage.onerror = () => { console.error("Error loading moai_shot.png. Check file path."); };
+
+        // ★ URA ENEMIES
+        const glitchCubeImage = new Image();
+        glitchCubeImage.src = 'enemy_glitch_cube.png';
+        let glitchCubeImageLoaded = false;
+        glitchCubeImage.onload = () => { glitchCubeImageLoaded = true; };
+
+        const shadowEyeImage = new Image();
+        shadowEyeImage.src = 'enemy_shadow_eye.png';
+        let shadowEyeImageLoaded = false;
+        shadowEyeImage.onload = () => { shadowEyeImageLoaded = true; };
 
         const slimeImage = new Image();
         slimeImage.src = 'enemy_slime.png';
@@ -658,6 +695,48 @@
         bgGroundImage.src = 'bg_ground.png?v=' + (Date.now() + 100); // Cache Buster
         let bgGroundImageLoaded = false;
         bgGroundImage.onload = () => { bgGroundImageLoaded = true; };
+
+        // ★ STAGE 2 Assets
+        const bgNoonSkyImage = new Image();
+        bgNoonSkyImage.src = 'bg_noon_sky.png';
+        let bgNoonSkyImageLoaded = false;
+        bgNoonSkyImage.onload = () => { bgNoonSkyImageLoaded = true; };
+
+        const bgNoonMountainsImage = new Image();
+        bgNoonMountainsImage.src = 'bg_noon_mountains.png';
+        let bgNoonMountainsImageLoaded = false;
+        bgNoonMountainsImage.onload = () => { bgNoonMountainsImageLoaded = true; };
+
+        const bgNoonGroundImage = new Image();
+        bgNoonGroundImage.src = 'bg_noon_ground.png';
+        let bgNoonGroundImageLoaded = false;
+        bgNoonGroundImage.onload = () => { bgNoonGroundImageLoaded = true; };
+
+        // ★ URA MODE Assets
+        const bgUraSky1Image = new Image();
+        bgUraSky1Image.src = 'bg_ura_stage1.png';
+        let bgUraSky1ImageLoaded = false;
+        bgUraSky1Image.onload = () => { bgUraSky1ImageLoaded = true; };
+
+        const bgUraSky2Image = new Image();
+        bgUraSky2Image.src = 'bg_ura_stage2.png';
+        let bgUraSky2ImageLoaded = false;
+        bgUraSky2Image.onload = () => { bgUraSky2ImageLoaded = true; };
+
+        const bgUraSky3Image = new Image();
+        bgUraSky3Image.src = 'bg_ura_stage3.png';
+        let bgUraSky3ImageLoaded = false;
+        bgUraSky3Image.onload = () => { bgUraSky3ImageLoaded = true; };
+
+        const bgUraSky4Image = new Image();
+        bgUraSky4Image.src = 'bg_ura_stage4.png';
+        let bgUraSky4ImageLoaded = false;
+        bgUraSky4Image.onload = () => { bgUraSky4ImageLoaded = true; };
+
+        const bgUraGroundImage = new Image();
+        bgUraGroundImage.src = 'bg_ura_ground.png';
+        let bgUraGroundImageLoaded = false;
+        bgUraGroundImage.onload = () => { bgUraGroundImageLoaded = true; };
 
 
         // ====================================
@@ -763,14 +842,18 @@
         let nextStageIndex = 0; // トランジション用
         let bgmTimer = null; // ★ Defined globally to prevent ReferenceError
 
-        const player = { x: 20, y: G.GROUND, vy: 0, onG: true, bg: 0, speed: 0, bob: 0 };
+        const player = { x: 20, y: G.GROUND, vy: 0, onG: true, bg: 0, speed: 0, bob: 0, shootT: 0, ammo: 5, maxAmmo: 5, goldTimer: 0 };
         const items = [];
         const obstacles = [];
         let itemSpawn = 30;
         let obstacleSpawn = 60;
         let workSpawn = 0;
+        let shootCooldown = 0; // 連射制限用
+        let debugStageToStart = -1; // デバッグ用ステージ保存用
+        let isUraMode = false; // ★ 裏モードフラグ
+        let goldTransformationTimer = 0; // ★ 黄金変身演出用タイマー
 
-        // Boss 
+        // Boss 
         const BOSS_MAX_HP = 100;
         const boss = {
           active: false, x: G.W - 30, y: G.GROUND - 40, hp: BOSS_MAX_HP, timer: 0, dir: 1,
@@ -811,6 +894,7 @@
         const lfHeartsEl = document.getElementById('lf-hearts');
         const lfNumEl = document.getElementById('lf-num');
         const stDisplayEl = document.getElementById('st-display');
+        const ammoDisplayEl = document.getElementById('ammo-display');
         const tgEl = document.getElementById('tg');
         const overEl = document.getElementById('over');
         const startEl = document.getElementById('start');
@@ -822,6 +906,25 @@
           const w = G.W;
           const h = G.H;
           let grd;
+
+          // ★ URA MODE BACKGROUNDS
+          if (isUraMode) {
+            let uraImg = null;
+            if (currentStage.id === 1) uraImg = bgUraSky1ImageLoaded ? bgUraSky1Image : null;
+            else if (currentStage.id === 2) uraImg = bgUraSky2ImageLoaded ? bgUraSky2Image : null;
+            else if (currentStage.id === 3) uraImg = bgUraSky3ImageLoaded ? bgUraSky3Image : null;
+            else if (currentStage.id === 4) uraImg = bgUraSky4ImageLoaded ? bgUraSky4Image : null;
+
+            if (uraImg) {
+              ctx.drawImage(uraImg, 0, 0, w, h);
+              // Optional: Add some flickering glitch effect
+              if (t % 60 < 2) {
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
+                ctx.fillRect(0, 0, w, h);
+              }
+              return;
+            }
+          }
 
           // --- STAGE 1: MORNING (朝) ---
 
@@ -1003,6 +1106,23 @@
         function drawGround() {
           const w = G.W;
           const h = G.H;
+
+          // ★ URA MODE GROUND
+          if (isUraMode && bgUraGroundImageLoaded) {
+            const gx = -(player.bg % w);
+            ctx.drawImage(bgUraGroundImage, gx, G.GROUND, w, h - G.GROUND);
+            ctx.drawImage(bgUraGroundImage, gx + w, G.GROUND, w, h - G.GROUND);
+            return;
+          }
+
+          if (currentStage.id === 2 && bgNoonGroundImageLoaded) {
+            // Detailed Ground for Stage 2
+            const gx = -(player.bg % w);
+            ctx.drawImage(bgNoonGroundImage, gx, G.GROUND, w, h - G.GROUND);
+            ctx.drawImage(bgNoonGroundImage, gx + w, G.GROUND, w, h - G.GROUND);
+            return;
+          }
+
           const groundY = G.GROUND;
 
           // ★ STAGE 1 - Pixel Art Ground
@@ -1094,60 +1214,99 @@
 
         function drawMoai() {
           // キャラクター切り替え
+          const isGold = (player.goldTimer > 0);
           const isMark2 = (selectedChar === 'mark2');
-          const useImg = isMark2 ? moaiMark2Image : moaiImage;
-          const imgLoaded = isMark2 ? moaiMark2ImageLoaded : moaiImageLoaded;
+          let useImg = isMark2 ? moaiMark2Image : moaiImage;
+          if (isGold) useImg = moaiGoldImage;
+
+          const imgLoaded = isGold ? moaiGoldImageLoaded : (isMark2 ? moaiMark2ImageLoaded : moaiImageLoaded);
           if (!imgLoaded) return;
 
           const x = player.x;
           const y = player.y;
-          const bob = Math.sin(player.bob) * 1.5;
-          // Mark2は少し大きめ
-          const frameWidth = isMark2 ? 38 : 32;
-          const frameHeight = isMark2 ? 52 : 48;
+          
+          // 発射時の反動アニメーション (Gold中は反動なし)
+          const shootKick = isGold ? 0 : Math.sin(player.shootT * 0.5) * 5;
+          const bob = (Math.sin(player.bob) * 1.5) - shootKick; 
+          
+          // Mark2は少し大きめ (GoldもMark2ベース)
+          const frameWidth = (isMark2 || isGold) ? 38 : 32;
+          const frameHeight = (isMark2 || isGold) ? 52 : 48;
 
-          const drawX = x - frameWidth / 2;
+          const drawX = x - frameWidth / 2 - (player.shootT > 0 && !isGold ? 2 : 0); 
           const drawY = y - frameHeight + bob;
+
+          ctx.save();
+          // ゴールドオーラ演出
+          if (isGold) {
+            ctx.shadowBlur = 15 + Math.sin(t * 0.2) * 10;
+            ctx.shadowColor = '#FFD700';
+            // 点滅による警告 (残り2秒以下)
+            if (player.goldTimer < 120 && Math.floor(t / 5) % 2 === 0) {
+              ctx.globalAlpha = 0.5;
+            }
+          }
+
+          // 撃った瞬間に少しのけぞる
+          if (player.shootT > 0 && !isGold) {
+            ctx.translate(drawX + frameWidth/2, drawY + frameHeight);
+            ctx.rotate(-0.1); 
+            ctx.translate(-(drawX + frameWidth/2), -(drawY + frameHeight));
+          }
 
           ctx.drawImage(
             useImg,
             0, 0, useImg.width, useImg.height,
             drawX, drawY, frameWidth, frameHeight
           );
+          ctx.restore();
 
           if (player.onG) {
-            ctx.fillStyle = '#fff9';
+            ctx.fillStyle = isGold ? '#FFD700aa' : '#fff9';
             const dustX = drawX + frameWidth / 4;
             const dustY = y - 4;
 
             ctx.fillRect(dustX - 4, dustY, 4, 2);
             ctx.fillRect(dustX - 8, dustY + 2, 2, 2);
 
-            // Mark2のブースター排気エフェクト
-            if (isMark2) {
-              const ex = drawX + frameWidth * 0.8;
+            // Mark2 / Gold のブースター排気エフェクト
+            if (isMark2 || isGold) {
+              const ex = drawX + (player.shootT > 0 && !isGold ? -2 : 0) + frameWidth * 0.8;
               const ey = drawY + frameHeight * 0.3;
-              ctx.fillStyle = `rgba(100, 180, 255, ${0.4 + Math.sin(t * 0.3) * 0.3})`;
-              ctx.fillRect(ex, ey, 3, 2 + Math.floor(Math.random() * 3));
-              ctx.fillRect(ex + 4, ey - 1, 3, 2 + Math.floor(Math.random() * 3));
+              ctx.fillStyle = isGold ? `rgba(255, 255, 100, ${0.6 + Math.sin(t * 0.4) * 0.4})` : `rgba(100, 180, 255, ${0.4 + Math.sin(t * 0.3) * 0.3})`;
+              ctx.fillRect(ex, ey, isGold ? 5 : 3, 2 + Math.floor(Math.random() * 5));
+              ctx.fillRect(ex + 4, ey - 1, isGold ? 5 : 3, 2 + Math.floor(Math.random() * 5));
             }
           }
         }
 
         function drawBottle(it) {
-          // Check if image is loaded, otherwise fallback to simple rect
+          if (it.taken) return;
+          
+          // Check if image is loaded, otherwise fallback
           if (!yogurtImageLoaded) {
-            ctx.fillStyle = '#3b82f6';
-            ctx.fillRect(it.x, it.y, 14, 20);
+            ctx.fillStyle = it.type === 'Gold' ? '#FFD700' : '#3b82f6';
+            ctx.fillRect(it.x - 7, it.y - 10, 14, 20);
             return;
           }
 
-          const x = (it.x - 8) | 0; // Center texturing
+          const x = (it.x - 8) | 0;
           const y = (it.y - 30) | 0;
 
           // Select Image
           let useImg = yogurtImage;
-          if (it.score === 20 && yogurt2ImageLoaded) {
+          const isGold = (it.type === 'Gold');
+
+          if (isGold && goldItemImageLoaded) {
+            useImg = goldItemImage;
+            // 黄金のオーラ演出
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#FFD700';
+            ctx.drawImage(useImg, 0, 0, useImg.width, useImg.height, x - 4, y - 4, 40, 40); // 少し大きく
+            ctx.restore();
+            return;
+          } else if (it.score === 20 && yogurt2ImageLoaded) {
             useImg = yogurt2Image; // Red (Strawberry)
           } else if (it.heal && yogurt3ImageLoaded) {
             useImg = yogurt3Image; // Yellow (Heal)
@@ -1159,6 +1318,17 @@
 
         // ★ MoaiShot (モアイ弾) の描画
         function drawMoaiShot(s) {
+          if (s.type === 'CelerySpit') {
+            // 緑の何か（毒液）
+            ctx.fillStyle = '#22c55e';
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#4ade80';
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, 4, 0, 6.28);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            return;
+          }
           if (!moaiShotImageLoaded) return;
           if (!s.type.startsWith('MoaiThrow')) return;
 
@@ -1381,6 +1551,64 @@
           ctx.fillText(name, x, yPos);
         }
 
+        function drawMiniAuthor(d) {
+          if (!authorImageLoaded) return;
+          const x = d.x;
+          const y = isUraMode ? d.y - 18 : d.y + Math.sin(t * 0.05 + d.phase) * 4;
+
+          ctx.save();
+          ctx.translate(x, y);
+
+          let currentImg = authorImage;
+          let fw = 24;
+          const fh = 36;
+
+          // Animation Logic
+          if (d.isCharging && authorChargeImageLoaded) {
+            currentImg = authorChargeImage;
+          } else if (d.isAttacking && authorAttackImageLoaded) {
+            currentImg = authorAttackImage;
+            fw = 36;
+          }
+
+          if (isUraMode) {
+            // Aura (BEFORE sprite)
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+            ctx.beginPath();
+            ctx.arc(0, 0, 20 + Math.sin(t * 0.2) * 5, 0, 6.28);
+            ctx.fill();
+          }
+
+          ctx.drawImage(currentImg, 0, 0, currentImg.width, currentImg.height, -fw / 2, -fh / 2, fw, fh);
+          ctx.restore();
+        }
+
+        function drawGlitchCube(d) {
+          if (!glitchCubeImageLoaded) {
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(d.x - 12, d.y - 24, 24, 24);
+            return;
+          }
+          const x = (d.x) | 0;
+          const y = (d.y) | 0;
+          const glitchX = (Math.random() - 0.5) * 4;
+          ctx.drawImage(glitchCubeImage, x - 12 + glitchX, y - 24, 24, 24);
+        }
+
+        function drawShadowEye(d) {
+          if (!shadowEyeImageLoaded) {
+            ctx.fillStyle = '#4b2e83';
+            ctx.beginPath();
+            ctx.arc(d.x, d.y - 30, 12, 0, 6.28);
+            ctx.fill();
+            return;
+          }
+          const x = (d.x) | 0;
+          const y = (d.y - 30) | 0;
+          const bob = Math.sin(t * 0.1) * 5;
+          ctx.drawImage(shadowEyeImage, x - 15, y - 15 + bob, 30, 30);
+        }
+
 
         // ステージクリア演出描画
         function drawClear() {
@@ -1436,8 +1664,8 @@
         // ステージテーマタイトル描画ロジック
         function drawTitle() {
           const stageNum = stageIndex + 1;
-          const stageName = currentStage.name;
-          const stageTheme = currentStage.theme; // 新しいテーマプロパティを使用
+          const stageName = (isUraMode && stageIndex < 4) ? URA_STAGE_INFO[stageIndex].name : currentStage.name;
+          const stageTheme = (isUraMode && stageIndex < 4) ? URA_STAGE_INFO[stageIndex].theme : currentStage.theme; // 新しいテーマプロパティを使用
 
           ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
           ctx.fillRect(0, 0, G.W, G.H);
@@ -1471,11 +1699,17 @@
           else if (name === 'Work') name = '仕事';
           else if (name === 'Insect' || name === 'DiveInsect') name = '昆虫';
 
+          if (name === 'MiniAuthor') return;
+
           const yOffset = (d.type === 'Tax') ? 40 : 30;
           const yPos = d.y - yOffset;
 
           ctx.textAlign = 'center';
-          ctx.font = '10px "Press Start 2P"'; // "DotGothic16" removed for slight perf boost in tags, or keep if needed. keeping simple.
+          if (d.type === 'GlitchCube' || d.type === 'ShadowEye') {
+            ctx.font = '7px "Press Start 2P"';
+          } else {
+            ctx.font = '10px "Press Start 2P"';
+          }
 
           // Cheap shadow (offset draw) instead of expensive strokeText
           ctx.fillStyle = '#000';
@@ -1497,6 +1731,7 @@
           score = 0;
           lives = 10;
           stageIndex = 0;
+          isUraMode = false; // 通常はオフ
 
           startEl.style.display = 'flex';
           overEl.style.display = 'none';
@@ -1515,9 +1750,14 @@
           player.vy = 0;
           player.speed = currentStage.speed;
           player.bg = 0;
+          player.ammo = player.maxAmmo; // ステージ開始時にリロード
           workSpawn = 0;
 
-          stDisplayEl.textContent = currentStage.name;
+          if (isUraMode && stageIndex < 4) {
+            stDisplayEl.textContent = URA_STAGE_INFO[stageIndex].name;
+          } else {
+            stDisplayEl.textContent = currentStage.name;
+          }
           tgEl.textContent = isFinite(currentStage.target) ? currentStage.target : '----';
 
           // ★ ステージ開始時はTITLE状態に移行
@@ -1573,8 +1813,18 @@
           // ゲームの状態をリセット
           score = 0;
           lives = MAX_LIVES;
-          // ステージロード (loadStage内でstateはTITLEに変わる)
-          loadStage(0);
+          
+          // ★ デバッグステージが選択されている場合はそれを使用、そうでなければ最初から
+          const startIdx = (debugStageToStart !== -1) ? debugStageToStart : 0;
+          if (startIdx >= 6) {
+            isUraMode = true;
+            loadStage(startIdx - 6); // 裏モードの任意のステージから開始
+          } else {
+            isUraMode = false;
+            loadStage(startIdx);
+          }
+          debugStageToStart = -1; // 使用後はリセット
+
           startEl.style.display = 'none';
           overEl.style.display = 'none';
           beep(660, 0.15, 'square', 0.2);
@@ -1649,7 +1899,7 @@
         // ====================================
 
         function damagePlayer(amount) {
-          if (state !== 'PLAY') return;
+          if (state !== 'PLAY' || player.goldTimer > 0) return; // ゴールド中は無敵
           lives -= amount;
           beep(100, 0.2, 'sawtooth', 0.3);
 
@@ -1702,6 +1952,10 @@
 
         function updatePlay() {
           t++;
+          if (shootCooldown > 0) shootCooldown--;
+          if (player.shootT > 0) player.shootT--;
+          if (player.goldTimer > 0) player.goldTimer--;
+
           player.bg += player.speed;
           player.bob += 0.2;
 
@@ -1717,13 +1971,22 @@
 
           if (!isBoss) {
             // アイテムスポーン (省略)
+            const mk2ItemFactor = (selectedChar === 'mark2' ? 2.5 : 1.0);
             if (--itemSpawn <= 0) {
-              const isStrawberry = Math.random() < 0.15;
-              const scoreValue = isStrawberry ? 20 : 10;
-              const isHeal = Math.random() < 0.05;
-              items.push({ x: G.W + 20, y: G.GROUND - 10 - Math.random() * 40, taken: false, heal: isHeal, score: scoreValue });
-              itemSpawn = (30 / player.speed * currentStage.obsRate) | 0 + Math.random() * 20;
+              const rItem = Math.random();
+              if (selectedChar === 'mark2' && rItem < GOLD_YOGURT_RATE) { 
+                items.push({ x: G.W + 20, y: G.GROUND - 40, taken: false, type: 'Gold' });
+              } else {
+                const isStrawberry = Math.random() < 0.15;
+                const scoreValue = isStrawberry ? 20 : 10;
+                const isHeal = Math.random() < 0.10;
+                items.push({ x: G.W + 20, y: G.GROUND - 10 - Math.random() * 40, taken: false, heal: isHeal, score: scoreValue });
+              }
+              itemSpawn = ((30 / player.speed * currentStage.obsRate) * mk2ItemFactor) | 0 + Math.random() * 20;
             }
+
+            // --- 敵のスポーン頻度をMk.IIでさらに強化 ---
+            const mk2Difficulty = (selectedChar === 'mark2' ? 0.35 : 1.0);
 
             // 1. 通常の敵スポーン (Workを除く)
             if (--obstacleSpawn <= 0) {
@@ -1731,7 +1994,7 @@
               let spawnRateSum = 0;
               let type = null;
 
-              // Tax, Insect, Company, Meeting, Celery, Anxietyの抽選ロジック (省略)
+              // Tax, Insect, Company, Meeting, Celery, Anxietyの抽選ロジック
               spawnRateSum += currentStage.taxRate;
               if (r < spawnRateSum) { type = 'Tax'; }
               else {
@@ -1756,8 +2019,32 @@
               }
 
               if (type) {
-                let newObstacle = { x: G.W + 20, type: type, hit: false, vy: 0 };
-                // 敵の初期Y座標設定（Workを除く）
+                let finalType = type;
+                if (isUraMode) {
+                  const rUra = Math.random();
+                  if (rUra < 0.3) finalType = 'GlitchCube';
+                  else if (rUra < 0.6) finalType = 'ShadowEye';
+                  else finalType = 'MiniAuthor';
+                }
+
+                let newObstacle = { x: G.W + 20, type: finalType, hit: false, vy: 0 };
+                if (finalType === 'MiniAuthor') {
+                  newObstacle.y = G.GROUND;
+                  newObstacle.hp = 3;
+                  newObstacle.attackTimer = 30 + Math.random() * 40;
+                  newObstacle.isCharging = true;
+                  newObstacle.isAttacking = false;
+                  newObstacle.attackIndex = Math.floor(Math.random() * 3);
+                  newObstacle.phase = Math.random() * 6.28;
+                } else if (finalType === 'GlitchCube') {
+                  newObstacle.y = G.GROUND;
+                  newObstacle.dashTimer = 60 + Math.random() * 60;
+                  newObstacle.isDashing = false;
+                } else if (finalType === 'ShadowEye') {
+                  newObstacle.y = G.GROUND - 50 - Math.random() * 30;
+                  newObstacle.shootTimer = 80 + Math.random() * 80;
+                }
+                // 敵の初期Y座標設定
                 if (type === 'Insect' || type === 'DiveInsect') {
                   newObstacle.y = (type === 'Insect') ? G.GROUND - (Math.random() < 0.6 ? 20 : 50) : 0;
                 } else if (type === 'Tax') {
@@ -1773,17 +2060,27 @@
                 obstacles.push(newObstacle);
               }
 
-              obstacleSpawn = (90 / player.speed * currentStage.obsRate) | 0 + Math.random() * 50;
+              obstacleSpawn = ((90 / player.speed * currentStage.obsRate) * mk2Difficulty) | 0 + Math.random() * 50;
             }
 
             // 2. 仕事 (Work) 専用スポーンロジック 
             if (currentStage.workRate > 0 && --workSpawn <= 0) {
               const min = currentStage.workSpawnMin;
               const max = currentStage.workSpawnMax;
-              workSpawn = min + Math.random() * (max - min);
+              workSpawn = (min + Math.random() * (max - min)) * mk2Difficulty;
 
               if (Math.random() < currentStage.workRate) {
-                let workObstacle = { x: G.W + 20, type: 'Work', hit: false, vy: 0 };
+                const finalType = isUraMode ? 'MiniAuthor' : 'Work';
+                let workObstacle = { x: G.W + 20, type: finalType, hit: false, vy: 0 };
+                if (isUraMode) {
+                  workObstacle.y = G.GROUND;
+                  workObstacle.hp = 3;
+                  workObstacle.attackTimer = 20 + Math.random() * 30;
+                  workObstacle.isCharging = true;
+                  workObstacle.isAttacking = false;
+                  workObstacle.attackIndex = Math.floor(Math.random() * 3);
+                  workObstacle.phase = Math.random() * 6.28;
+                }
 
                 if (Math.random() < 0.7) {
                   workObstacle.y = G.GROUND;
@@ -1799,17 +2096,50 @@
             // プレイヤー速度上昇の頻度を緩和 (1200フレームごと)
             if (t % 1200 === 0) player.speed = Math.min(player.speed + 0.1, 4.0);
           } else {
-            // Boss Logic (PLAY状態でのみ実行)
+            // Boss Logic (ボス戦中のみ)
             bossAttack();
+          }
 
-            // プレイヤーの弾丸とボスの当たり判定ロジック
-            for (let i = bullets.length - 1; i >= 0; i--) {
-              const b = bullets[i];
-              // ボスとの衝突判定
+          // --- 弾丸の移動と衝突判定（全ステージ共通） ---
+          for (let i = bullets.length - 1; i >= 0; i--) {
+            const b = bullets[i];
+            b.x += (b.type === 'Laser' ? 12 : 6); // レーザーは超高速
+
+            let bulletHit = false;
+
+            // 1. 通常の敵・障害物との衝突
+            for (let j = obstacles.length - 1; j >= 0; j--) {
+              const obs = obstacles[j];
+              const dx = b.x - obs.x;
+              const dy = b.y - (obs.y - 16);
+              // 判定を少し甘く
+              const hitRange = (b.type === 'Laser' ? 30 : 24);
+              if (Math.abs(dx) < hitRange && Math.abs(dy) < hitRange) {
+                if (b.type !== 'Laser') { // レーザーは貫通する
+                  bulletHit = true;
+                }
+                if (obs.type === 'MiniAuthor' && isUraMode) {
+                  obs.hp--;
+                  beep(600, 0.05, 'square', 0.1);
+                  if (obs.hp <= 0) {
+                    obstacles.splice(j, 1);
+                    score += 50;
+                  }
+                } else {
+                  obstacles.splice(j, 1);
+                  score += 5;
+                }
+                beep(1000, 0.04, 'sine', 0.1);
+                if (bulletHit) break;
+              }
+            }
+
+            // 2. ボスとの衝突
+            if (!bulletHit && isBoss) {
               if (Math.abs(b.x - boss.x) < 28 && Math.abs(b.y - boss.y) < 30) {
-                boss.hp -= 4; // ダメージを与える
-                bullets.splice(i, 1); // 弾丸を削除
+                boss.hp -= 4; 
                 beep(800, 0.05, 'square', 0.1);
+                bulletHit = true;
                 if (boss.hp <= 0) {
                   state = 'ENDING';
                   endScrollY = G.H;
@@ -1818,17 +2148,33 @@
                 }
               }
             }
+
+            // 弾が何かに当たったか、画面外に出たら削除
+            if (bulletHit || b.x > G.W + 50) {
+              bullets.splice(i, 1);
+            }
           }
 
           // Move & Collide (省略)
           items.forEach(it => it.x -= player.speed);
           for (let i = items.length - 1; i >= 0; i--) {
             const it = items[i];
-            if (!it.taken && Math.abs(it.x - player.x) < 14 && Math.abs(it.y - player.y + 10) < 18) {
+            if (!it.taken && Math.abs(it.x - player.x) < 16 && Math.abs(it.y - player.y + 10) < 22) {
               it.taken = true;
-              score += it.score;
-              if (it.heal) { lives = Math.min(lives + 1, MAX_LIVES); beep(1200, 0.1, 'sine', 0.3); }
-              else beep(880, 0.08, 'triangle', 0.2);
+              
+              if (it.type === 'Gold') {
+                player.goldTimer = 420; // 7秒間 (60fps * 7)
+                goldTransformationTimer = 30; // 演出開始
+                player.ammo = player.maxAmmo;
+                beep(600, 0.1, 'sine', 0.5);
+                setTimeout(() => beep(800, 0.1, 'sine', 0.5), 100);
+                setTimeout(() => beep(1000, 0.2, 'sine', 0.5), 200);
+              } else {
+                score += it.score;
+                player.ammo = Math.min(player.ammo + 1, player.maxAmmo); // 1個につき1発回復
+                if (it.heal) { lives = Math.min(lives + 1, MAX_LIVES); beep(1200, 0.1, 'sine', 0.3); }
+                else beep(880, 0.08, 'triangle', 0.2);
+              }
             }
             if (it.x < -20 || it.taken) items.splice(i, 1);
           }
@@ -1836,25 +2182,105 @@
           // Obstacles
           for (let i = obstacles.length - 1; i >= 0; i--) {
             const d = obstacles[i];
-            d.x -= player.speed * 1.2;
+            const isMk2 = (selectedChar === 'mark2');
+            const isGold = (player.goldTimer > 0);
+            
+            // Mk.IIは敵のスピードも速い
+            d.x -= player.speed * (isMk2 ? 1.5 : 1.2);
+
+            // ゴールドモード中は体当たりで敵を殲滅
+            if (isGold && !d.hit && Math.abs(d.x - player.x) < 30 && Math.abs(d.y - player.y + 16) < 30) {
+              obstacles.splice(i, 1);
+              score += 10;
+              beep(400, 0.05, 'sawtooth', 0.2);
+              continue;
+            }
 
             // 敵の挙動を新しいタイプ名で再適用
+            if (d.type === 'MiniAuthor' && !d.hit) {
+              d.y = G.GROUND; // 地面を歩く
+              d.attackTimer--;
+              if (d.attackTimer <= 0) {
+                if (d.isCharging) {
+                  d.isCharging = false;
+                  d.isAttacking = true;
+                  d.attackTimer = 20; // 攻撃ポーズ時間を短縮
+
+                  const attackType = BOSS_ATTACKS[d.attackIndex];
+                  const bx = d.x - 10;
+                  const by = d.y - 10;
+
+                  if (attackType === 'MoaiThrow_Arc') {
+                    bossShots.push({ x: bx, y: by, vx: -4.5, vy: -6, type: attackType, gravity: 0.25 });
+                  } else if (attackType === 'MoaiThrow_Horizontal') {
+                    bossShots.push({ x: bx, y: by, vx: -5, vy: 0, type: attackType, gravity: 0 });
+                  } else if (attackType === 'MoaiThrow_Homing') {
+                    bossShots.push({ x: bx, y: by, vx: -3, vy: 0, type: attackType, homingTarget: player, lifetime: 200 });
+                  }
+                  beep(400, 0.08, 'sawtooth', 0.1);
+                } else {
+                  d.isAttacking = false;
+                  d.isCharging = true;
+                  d.attackTimer = 60 + Math.random() * 60; // 次の攻撃までの溜め時間を大幅短縮
+                  d.attackIndex = Math.floor(Math.random() * 3);
+                }
+              }
+            } else if (d.type === 'GlitchCube' && !d.hit) {
+              d.dashTimer--;
+              if (d.isDashing) {
+                d.x -= 8; // Dash speed
+                if (d.dashTimer <= 0) {
+                  d.isDashing = false;
+                  d.dashTimer = 60 + Math.random() * 60;
+                }
+              } else {
+                if (d.dashTimer <= 0) {
+                  d.isDashing = true;
+                  d.dashTimer = 20;
+                  beep(300, 0.05, 'sawtooth', 0.1);
+                }
+              }
+            } else if (d.type === 'ShadowEye' && !d.hit) {
+              d.shootTimer--;
+              if (d.shootTimer <= 0) {
+                // Shoot a fast beam
+                bossShots.push({ x: d.x, y: d.y - 30, vx: -6, vy: 0, type: 'MoaiThrow_Horizontal', gravity: 0 });
+                beep(800, 0.05, 'sine', 0.1);
+                d.shootTimer = 120 + Math.random() * 60;
+              }
+            }
+
             if (d.type === 'Insect') { // 昆虫 (Drone)
-              if (d.y < G.GROUND) d.y += Math.sin(t * 0.1) * 0.5;
+              const freq = isMk2 ? 0.25 : 0.1;
+              const amp = isMk2 ? 1.5 : 0.5;
+              if (d.y < G.GROUND) d.y += Math.sin(t * freq) * amp;
             } else if (d.type === 'DiveInsect') { // 突進昆虫 (DiveDrone)
-              if (d.y < G.GROUND - 20) d.vy += 0.3;
+              if (d.y < G.GROUND - 20) d.vy += (isMk2 ? 0.5 : 0.3);
               else d.vy = 0;
               d.y += d.vy;
             } else if (d.type === 'Anxiety') { // 将来の不安 (Mine)
-              d.y = d.startY + Math.sin(t * 0.1 + d.phase) * d.amplitude;
+              const freq = isMk2 ? 0.2 : 0.1;
+              const amp = isMk2 ? 45 : 30;
+              d.y = d.startY + Math.sin(t * freq + d.phase) * amp;
             } else if (d.type === 'Tax') { // 税金 (Slime)
               d.y = G.GROUND - 15;
             } else if (d.type === 'Company' || d.type === 'Meeting' || d.type === 'Celery' || d.type === 'Work') { // 地上固定
               if (d.type !== 'Work' || !d.isFallingWork) {
                 d.y = G.GROUND;
               }
+              // ★ 生セロリの攻撃
+              if (d.type === 'Celery' && !d.hit) {
+                if (d.shootTimer === undefined) d.shootTimer = 60 + Math.random() * 60;
+                d.shootTimer--;
+                if (d.shootTimer <= 0) {
+                  // 緑の何かを吐く
+                  bossShots.push({ x: d.x, y: d.y - 20, vx: -3, vy: -1.5, type: 'CelerySpit', gravity: 0.08 });
+                  beep(1200, 0.05, 'sine', 0.1);
+                  d.shootTimer = 180 + Math.random() * 120;
+                }
+              }
             } else if (d.type === 'Work' && d.isFallingWork) { // 仕事 (落下中)
-              if (d.y < G.GROUND) d.vy += 0.4;
+              if (d.y < G.GROUND) d.vy += (isMk2 ? 0.6 : 0.4);
               else d.vy = 0;
               d.y += d.vy;
             }
@@ -1949,6 +2375,13 @@
             s.x += s.vx;
             s.y += s.vy;
 
+            // ★ 回避リロード判定（プレイヤーを通り過ぎたら回復）
+            if (!s.avoided && s.x < player.x - 10) {
+              s.avoided = true;
+              player.ammo = Math.min(player.ammo + 1, player.maxAmmo);
+              beep(1200, 0.03, 'sine', 0.1); // ピキーンという回復音
+            }
+
             if (Math.abs(s.x - player.x) < 10 && Math.abs(s.y - player.y + 16) < 16) {
               damagePlayer(1);
               bossShots.splice(i, 1);
@@ -1960,11 +2393,7 @@
             else if (s.x < -20 || s.y > G.H + 20) bossShots.splice(i, 1);
           }
 
-          // Player Bullets (ボス戦での攻撃に使用)
-          for (let i = bullets.length - 1; i >= 0; i--) {
-            bullets[i].x += 5;
-            if (bullets[i].x > G.W) bullets.splice(i, 1);
-          }
+          // Player Bullets (Moved above and consolidated)
 
           // Stage Clear Check (演出追加)
           if (!isBoss && score >= currentStage.target) {
@@ -1981,6 +2410,7 @@
 
           // Update UI (省略)
           scEl.textContent = score;
+          ammoDisplayEl.textContent = `🍼 ${player.ammo}`;
           // Hearts visual + Number
           lfHeartsEl.textContent = '💛'.repeat(Math.max(0, lives));
           lfNumEl.textContent = lives;
@@ -1990,17 +2420,21 @@
         function updateClear() {
           t++;
           if (t > 60) { // 1秒間のクリア表示後、トランジションに移行
-            state = 'TRANSITION';
+            if (isUraMode && nextStageIndex === 4) { // 裏モードはステージ4クリアで即終了
+              state = 'ENDING';
+              endScrollY = G.H;
+              playFanfare();
+            } else {
+              state = 'TRANSITION';
+            }
             t = 0;
           }
         }
 
-        // ステージ切り替えの更新ロジック
         function updateTransition() {
           t++;
-          if (t > 90) { // トランジションアニメーション終了後、次のステージをロード
-            loadStage(nextStageIndex); // 新しいステージのロード (この中でstateがTITLEに変わる)
-            t = 0;
+          if (t > 90) { // 1.5秒間の演出後、次ステージへ
+            loadStage(nextStageIndex);
           }
         }
 
@@ -2015,7 +2449,7 @@
 
         // ★ エンドロールの更新ロジック (秘密のコード停止処理を修正)
         function updateEnding() {
-          const textHeight = 20;
+          const textHeight = 16; // loop内の描画と統一
           // 秘密コードブロックが画面中央に達する目標位置を計算
           const targetY = G.H / 2 - textHeight * 1.5;
           // 秘密コードブロックの現在の先頭行のY座標
@@ -2023,24 +2457,27 @@
 
           // 秘密コードブロックが中央に到達したらスクロールを停止
           if (currentCodeBlockY < targetY && endScrollY > -1000) {
-            endScrollY -= 0.6; // 通常のスクロール速度
+            endScrollY -= 1.0; // 少し速く
           } else if (currentCodeBlockY >= targetY && t < SECRET_CODE_DURATION) {
             // スクロール停止＆演出中
             t++;
           } else {
             // 演出終了後、スクロール再開
-            endScrollY -= 0.6;
+            endScrollY -= 1.0;
             t++;
 
             // エンドロール終了チェック
             if (endScrollY < - (CREDITS.length * textHeight + 100)) {
-              state = 'OVER';
-              best = Math.max(best, score);
-              document.getElementById('overTitle').textContent = 'YOU WIN!';
-              document.getElementById('scoreline').textContent = `FINAL SCORE: ${score}`;
-              document.getElementById('retry').textContent = 'PLAY AGAIN';
-              overEl.style.display = 'flex';
-              stopBgm();
+              if (!isUraMode) {
+                // ★ 裏ステージ（URA MODE）へ移行
+                isUraMode = true;
+                loadStage(0);
+              } else {
+                // 裏ステージクリア後はOP画面に戻る
+                best = Math.max(best, score);
+                stopBgm();
+                initGame();
+              }
             }
           }
         }
@@ -2056,6 +2493,7 @@
           if (state === 'PLAY' || state === 'CLEAR' || state === 'TRANSITION' || state === 'TITLE' || state === 'ENDING' || state === 'OVER') {
             drawSky();
             drawGround();
+            
             items.forEach(drawBottle);
 
             // Draw Shadows & Obstacles
@@ -2079,31 +2517,43 @@
               else if (d.type === 'Celery') drawCelery(d);
               else if (d.type === 'Anxiety') drawAnxiety(d);
               else if (d.type === 'Work') drawWork(d);
+              else if (d.type === 'MiniAuthor') drawMiniAuthor(d);
+              else if (d.type === 'GlitchCube') drawGlitchCube(d);
+              else if (d.type === 'ShadowEye') drawShadowEye(d);
             });
 
             drawShadow(player.x, G.GROUND, 12);
             drawMoai();
 
             bullets.forEach(b => {
-              ctx.save();
-              ctx.translate(b.x, b.y);
-              ctx.rotate(Math.PI / 2); // 90 degrees clockwise
-
-              if (yogurtImageLoaded) {
-                ctx.drawImage(yogurtImage, 0, 0, yogurtImage.width, yogurtImage.height, -12, -12, 24, 24);
+              if (b.type === 'Laser') {
+                // 黄金レーザーの描画
+                ctx.fillStyle = '#FFD700';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#FFF';
+                ctx.fillRect(b.x - 20, b.y - 4, 40, 8);
+                ctx.shadowBlur = 0;
               } else {
-                ctx.fillStyle = '#e5f0ff';
-                ctx.beginPath();
-                ctx.arc(0, 0, 3, 0, 6.28);
-                ctx.fill();
+                ctx.save();
+                ctx.translate(b.x, b.y);
+                ctx.rotate(Math.PI / 2); // 90 degrees clockwise
+
+                if (yogurtImageLoaded) {
+                  ctx.drawImage(yogurtImage, 0, 0, yogurtImage.width, yogurtImage.height, -12, -12, 24, 24);
+                } else {
+                  ctx.fillStyle = '#e5f0ff';
+                  ctx.beginPath();
+                  ctx.arc(0, 0, 3, 0, 6.28);
+                  ctx.fill();
+                }
+                ctx.restore();
               }
-              ctx.restore();
             });
 
             if (currentStage.boss && boss.active) {
               drawBoss();
-              bossShots.forEach(drawMoaiShot);
             }
+            bossShots.forEach(drawMoaiShot);
 
             // ★ 敵名タグの描画
             if (state === 'PLAY' || state === 'CLEAR' || state === 'TITLE') {
@@ -2193,6 +2643,32 @@
             drawGround();
           }
 
+          // ★ 黄金変身演出
+          if (goldTransformationTimer > 0) {
+            goldTransformationTimer--;
+            
+            // 画面フラッシュ
+            ctx.fillStyle = `rgba(255, 215, 0, ${goldTransformationTimer / 60})`;
+            ctx.fillRect(0, 0, G.W, G.H);
+            
+            // 衝撃波
+            const ringR = (30 - goldTransformationTimer) * 12;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${goldTransformationTimer / 30})`;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y - 16, ringR, 0, 6.28);
+            ctx.stroke();
+
+            // 特大テキスト
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px "Press Start 2P"';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#FFD700';
+            ctx.fillText('GOLD MODE!', G.W / 2, G.H / 2);
+            ctx.shadowBlur = 0;
+          }
+
           requestAnimationFrame(loop);
         }
 
@@ -2212,11 +2688,34 @@
           if (!player.onG) player.vy += 2.5;
         }
         function shoot() {
-          if (state !== 'PLAY') return;
-          // ★ ファイナルステージでの攻撃許可ロジック
-          if (currentStage.boss && boss.active) {
-            bullets.push({ x: player.x + 10, y: player.y - 30 });
-            beep(900, 0.04, 'square', 0.1);
+          if (state !== 'PLAY' || shootCooldown > 0) return;
+          const isMark2 = (selectedChar === 'mark2');
+          const isGold = (player.goldTimer > 0);
+          
+          // ゴールド中でない場合のみ弾数チェック
+          if (!isGold && player.ammo <= 0) {
+            beep(150, 0.05, 'sawtooth', 0.1); // 弾切れ音
+            return;
+          }
+
+          // ★ Mk2/Goldならいつでも、Mk1ならボス戦のみ発射可能
+          if (isGold || isMark2 || (currentStage.boss && boss.active)) {
+            if (!isGold) player.ammo--; // 通常時は弾を消費
+            
+            // 生成位置
+            const spawnY = (isMark2 || isGold) ? player.y - 38 : player.y - 30;
+            
+            if (isGold) {
+              // 黄金レーザー
+              bullets.push({ x: player.x + 20, y: spawnY, type: 'Laser' });
+              shootCooldown = 6; // 超連射
+              beep(1200, 0.05, 'sine', 0.2);
+            } else {
+              bullets.push({ x: player.x + 15, y: spawnY });
+              player.shootT = 10; 
+              shootCooldown = isMark2 ? 12 : 15;
+              beep(900, 0.04, 'square', 0.1);
+            }
           }
         }
 
@@ -2225,12 +2724,14 @@
 
         // ★ Debug Logic
         window.startDebugGame = function (idx) {
-          score = 0;
-          lives = MAX_LIVES;
-          loadStage(idx);
-          startEl.style.display = 'none';
-          overEl.style.display = 'none';
-          beep(660, 0.1, 'square', 0.2);
+          debugStageToStart = idx;
+          // キャラ選択画面を表示
+          document.getElementById('char-select').style.display = 'flex';
+          selectedChar = null;
+          document.getElementById('card-mark1').classList.remove('selected');
+          document.getElementById('card-mark2').classList.remove('selected');
+          document.getElementById('char-go-btn').classList.remove('active');
+          beep(660, 0.1, 'square', 0.15);
         };
 
         let moaiClickCount = 0;
@@ -2250,8 +2751,9 @@
         const sBtn = document.getElementById('shot');
 
         jBtn.addEventListener('touchstart', e => { e.preventDefault(); jump() }, { passive: false });
-        // drop event removed
+        jBtn.addEventListener('mousedown', e => { jump() });
         sBtn.addEventListener('touchstart', e => { e.preventDefault(); shoot() }, { passive: false });
+        sBtn.addEventListener('mousedown', e => { shoot() });
 
         addEventListener('keydown', e => {
           if (e.code === 'Enter' && (state === 'START' || state === 'OVER')) {
