@@ -346,6 +346,138 @@
       transform: translateY(2px);
       box-shadow: 0 4px 0 #000;
     }
+
+    /* ===== アップデート情報モーダル ===== */
+    #update-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      font-family: 'DotGothic16', sans-serif;
+      color: #e2e8f0;
+    }
+
+    #update-modal-content {
+      background: linear-gradient(160deg, #1e293b, #0f172a);
+      border: 4px solid #f59e0b;
+      border-radius: 24px;
+      max-width: 540px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 28px 24px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.8), 0 0 20px rgba(245, 158, 11, 0.4);
+      animation: modalFadeIn 0.25s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #334155;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      color: #FFD700;
+      font-size: 22px;
+      font-weight: bold;
+      text-shadow: 2px 2px 0 #000;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-date {
+      font-size: 14px;
+      color: #38bdf8;
+      background: #0c4a6e;
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1px solid #0284c7;
+    }
+
+    .modal-close {
+      background: #ef4444;
+      color: #fff;
+      border: 2px solid #991b1b;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 0 #7f1d1d;
+      transition: transform 0.1s;
+    }
+    .modal-close:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #7f1d1d;
+    }
+
+    .modal-body h3 {
+      color: #f59e0b;
+      font-size: 18px;
+      border-left: 4px solid #FFD700;
+      padding-left: 10px;
+      margin: 24px 0 12px 0;
+      text-shadow: 1px 1px 0 #000;
+    }
+    .modal-body h3:first-child { margin-top: 0; }
+
+    .modal-body p, .modal-body li {
+      font-size: 16px;
+      line-height: 1.7;
+      margin: 0 0 12px 0;
+      color: #f1f5f9;
+    }
+    .modal-body ul {
+      margin: 0 0 16px 0;
+      padding-left: 24px;
+    }
+    .modal-body li { margin-bottom: 6px; }
+
+    /* Update Banner on Title Screen */
+    .update-banner {
+      background: linear-gradient(135deg, #b45309, #d97706);
+      border: 3px solid #fde047;
+      border-radius: 20px;
+      padding: 14px 28px;
+      cursor: pointer;
+      box-shadow: 0 8px 0 #78350f, 0 0 16px rgba(253, 224, 71, 0.5);
+      transition: transform 0.15s, box-shadow 0.15s;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      animation: pulseGlow 2s infinite alternate;
+      margin-top: -5px;
+      margin-bottom: 5px;
+    }
+    .update-banner:active {
+      transform: translateY(4px);
+      box-shadow: 0 4px 0 #78350f;
+    }
+    @keyframes pulseGlow {
+      from { box-shadow: 0 8px 0 #78350f, 0 0 12px rgba(253, 224, 71, 0.3); }
+      to { box-shadow: 0 8px 0 #78350f, 0 0 28px rgba(253, 224, 71, 0.8); }
+    }
   </style>
 </head>
 
@@ -380,8 +512,13 @@
       <div id="start">
       <!-- Logo as separate image for better mobile scaling -->
       <img id="title-logo" src="title_logo.png" alt="MOAI ROBO YOGURT RUN EX">
-      <div style="text-align: center; color: #FFD700; text-shadow: 2px 2px 0 #000; font-family: 'DotGothic16', monospace; font-size: 18px; margin-top: -10px;">
-        ★ MAJOR UPDATE ★<br><span style="font-size:14px;">モアイロボMk.IIモード追加！</span>
+      <div class="update-banner" onclick="showUpdateModal()">
+        <div style="color: #FFD700; font-family: 'Press Start 2P', monospace; font-size: 12px; text-shadow: 2px 2px 0 #000;">
+          ★ UPDATE 2026.05.17 ★
+        </div>
+        <div style="font-family: 'DotGothic16', monospace; font-size: 18px; font-weight: bold; color: #fff; text-shadow: 2px 2px 0 #000;">
+          モアイロボMark2 実装！ 👆 詳細を見る
+        </div>
       </div>
 
       <!-- The main interaction button -->
@@ -431,6 +568,52 @@
         </div>
       </div>
       <div id="char-go-btn" onclick="confirmCharSelect()">▶ START</div>
+    </div>
+
+    <!-- ===== アップデート情報モーダル ===== -->
+    <div id="update-modal" onclick="if(event.target === this) hideUpdateModal()">
+      <div id="update-modal-content">
+        <div class="modal-header">
+          <div class="modal-title">✨ 大型アップデート情報</div>
+          <div class="modal-date">2026.05.17</div>
+          <button class="modal-close" onclick="hideUpdateModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 20px; color: #FFD700; font-weight: bold; text-align: center; margin-bottom: 20px; text-shadow: 2px 2px 0 #000;">
+            ついにモアイロボMark2が起動！
+          </p>
+          <p>今回のアップデートでは、新型機体「モアイロボMark2」が実装されました。</p>
+          
+          <h3>▼ 新要素</h3>
+          <ul>
+            <li>初期状態からヨーグルトビーム発射可能</li>
+            <li>敵を撃破できる新バトル仕様追加</li>
+            <li>ゲーム全体の難易度大幅上昇</li>
+            <li>弾数制システム導入（最大5発）</li>
+            <li>ヨーグルト取得で弾数回復</li>
+            <li>ゴールドモアイモード追加</li>
+            <li>極秘裏ステージ追加</li>
+          </ul>
+
+          <h3>【モアイロボMark2】</h3>
+          <p>モアイロボが新型へ進化。<br>ヨーグルトビームで敵を撃破できます。</p>
+          <p>ただし弾数には限りがあります。<br>所持弾数は最大5発。<br>使い切ると発射不能になります。</p>
+          <p>ヨーグルトを回収して弾数を補充しながら進んでください。</p>
+
+          <h3>【ゴールドモアイモード】</h3>
+          <p>金色のヨーグルトを取得すると発動。</p>
+          <ul style="list-style: none; padding-left: 12px; border-left: 3px solid #FFD700;">
+            <li>⚡ 一定時間無敵</li>
+            <li>🌟 全身ゴールド化</li>
+            <li>🔥 ビーム連射可能</li>
+          </ul>
+          <p style="color: #FFD700; font-weight: bold;">この力で難所を突破せよ。</p>
+
+          <h3>【極秘要素】</h3>
+          <p>超高難易度ステージを突破した者のみ、<br>隠された裏ステージへ到達可能。</p>
+          <p style="color: #cbd5e1; font-style: italic;">そこに待つものは、まだ誰も知らない。</p>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -1801,6 +1984,15 @@
           document.getElementById('card-mark2').classList.toggle('selected', ch === 'mark2');
           document.getElementById('char-go-btn').classList.add('active');
           beep(880, 0.06, 'triangle', 0.15);
+        };
+
+        window.showUpdateModal = function() {
+          document.getElementById('update-modal').style.display = 'flex';
+          beep(1000, 0.1, 'sine', 0.2);
+        };
+        window.hideUpdateModal = function() {
+          document.getElementById('update-modal').style.display = 'none';
+          beep(800, 0.1, 'sine', 0.2);
         };
 
         window.confirmCharSelect = function() {
