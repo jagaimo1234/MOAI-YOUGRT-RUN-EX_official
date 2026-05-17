@@ -366,8 +366,8 @@
       box-shadow: 0 4px 0 #000;
     }
 
-    /* ===== アップデート情報モーダル ===== */
-    #update-modal {
+    /* ===== 体験版案内モーダル ===== */
+    #demo-modal {
       display: none;
       position: fixed;
       inset: 0;
@@ -1933,6 +1933,8 @@
 
           startEl.style.display = 'flex';
           overEl.style.display = 'none';
+          const banner = document.querySelector('.update-banner');
+          if (banner) banner.style.display = 'flex';
         }
 
         function loadStage(idx) { // ステージ開始時の初期化
@@ -1982,6 +1984,8 @@
         function startGame() {
           // ★ ゲームスタートのロジック修正: キャラ選択画面へ
           if (state === 'START' || state === 'OVER') {
+            const banner = document.querySelector('.update-banner');
+            if (banner) banner.style.display = 'none';
             // キャラ選択画面を表示
             document.getElementById('char-select').style.display = 'flex';
             // 選択リセット
