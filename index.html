@@ -55,12 +55,12 @@
       /* Dark Blue */
       color: #FFD700;
       /* Gold */
-      padding: 14px 14px 20px 14px;
+      padding: 10px 12px 14px 12px;
       font-family: 'Press Start 2P', 'DotGothic16', monospace;
       z-index: 10;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 6px;
       border-bottom: 2px solid #444;
       box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
     }
@@ -69,13 +69,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 16px;
+      font-size: 13px;
     }
 
     #hud-vals {
       display: flex;
       justify-content: space-around;
-      font-size: 24px;
+      font-size: 20px;
     }
 
     .hud-val {
@@ -85,28 +85,28 @@
 
     #ctrls {
       position: fixed;
-      bottom: 40px;
+      bottom: 24px;
       /* Sitting in the dirt area */
       left: 0;
       right: 0;
       display: flex;
       justify-content: center;
-      padding: 0 20px;
-      gap: 30px;
+      padding: 0 16px;
+      gap: 20px;
       z-index: 10;
     }
 
     .big-btn {
       flex: 1;
-      max-width: 160px;
+      max-width: 145px;
       background: linear-gradient(to bottom, #2d3748, #1a202c);
       color: #e2e8f0;
       border: 4px solid #4a5568;
       border-radius: 16px;
-      padding: 30px 0;
+      padding: 22px 0;
       text-align: center;
       font-family: 'Press Start 2P', monospace;
-      font-size: 18px;
+      font-size: 15px;
       box-shadow: 0 8px 0 #000;
       user-select: none;
       transition: transform 0.1s, box-shadow 0.1s;
@@ -123,7 +123,22 @@
       background: #374151;
     }
 
-    #start,
+    #start {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      padding-top: 60px; /* offset top HUD */
+      padding-bottom: 90px; /* offset bottom ctrls */
+      background: url('title_bg_mobile.jpg') no-repeat center center;
+      background-size: cover;
+      z-index: 4;
+      font-family: 'Press Start 2P', monospace;
+    }
+
     #over {
       position: fixed;
       inset: 0;
@@ -132,32 +147,19 @@
       justify-content: center;
       flex-direction: column;
       gap: 20px;
-      /* Increased gap for separation */
-
-      /* Mobile Optimized Background */
-      background: url('title_bg_mobile.jpg') no-repeat center center;
-      background-size: cover;
-
-      z-index: 4;
-      font-family: 'Press Start 2P', monospace;
-    }
-
-    #over {
-      display: none;
       background: rgba(0, 0, 0, 0.85);
-      /* Slightly transparent black */
       z-index: 50;
-      /* Ensure on top of HUD */
+      font-family: 'Press Start 2P', monospace;
     }
 
     #title-logo {
       width: 85%;
-      max-width: 500px;
+      max-width: 400px;
+      max-height: 22vh;
       height: auto;
       object-fit: contain;
       image-rendering: pixelated;
-      margin-bottom: 20px;
-      /* Drop shadow for better visibility against sky/clouds */
+      margin-bottom: 10px;
       filter: drop-shadow(4px 4px 0px rgba(0, 0, 0, 0.5));
     }
 
@@ -459,7 +461,7 @@
       background: linear-gradient(135deg, #b45309, #d97706);
       border: 3px solid #fde047;
       border-radius: 20px;
-      padding: 14px 28px;
+      padding: 10px 20px;
       cursor: pointer;
       box-shadow: 0 8px 0 #78350f, 0 0 16px rgba(253, 224, 71, 0.5);
       transition: transform 0.15s, box-shadow 0.15s;
@@ -515,10 +517,10 @@
       <!-- Logo as separate image for better mobile scaling -->
       <img id="title-logo" src="title_logo.png" alt="MOAI ROBO YOGURT RUN EX">
       <div class="update-banner" onclick="showUpdateModal()">
-        <div style="color: #FFD700; font-family: 'Press Start 2P', monospace; font-size: 12px; text-shadow: 2px 2px 0 #000;">
+        <div style="color: #FFD700; font-family: 'Press Start 2P', monospace; font-size: 11px; text-shadow: 2px 2px 0 #000;">
           ★ UPDATE 2026.05.17 ★
         </div>
-        <div style="font-family: 'DotGothic16', monospace; font-size: 18px; font-weight: bold; color: #fff; text-shadow: 2px 2px 0 #000;">
+        <div style="font-family: 'DotGothic16', monospace; font-size: 16px; font-weight: bold; color: #fff; text-shadow: 2px 2px 0 #000;">
           モアイロボMark2 実装！ 👆 詳細を見る
         </div>
       </div>
