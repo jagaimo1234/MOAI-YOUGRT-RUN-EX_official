@@ -951,6 +951,10 @@
         let bgNoonMountainsImageLoaded = false;
         bgNoonMountainsImage.onload = () => { bgNoonMountainsImageLoaded = true; };
 
+        const bgNoonLunchImage = new Image();
+        bgNoonLunchImage.src = 'bg_noon_lunch.svg';
+        const noonGrassRow = 261;
+
         const bgNoonGroundImage = new Image();
         bgNoonGroundImage.src = 'bg_noon_ground.png';
         let bgNoonGroundImageLoaded = false;
@@ -1230,6 +1234,11 @@
 
           // --- STAGE 2: NOON (昼) ---
           else if (currentStage.id === 2) {
+            if (!isUraMode && bgNoonLunchImage.naturalWidth) {
+              ctx.drawImage(bgNoonLunchImage, 0, 0, 360, noonGrassRow, 0, 0, w, G.GROUND);
+              return;
+            }
+
             grd = ctx.createLinearGradient(0, 0, 0, h);
             grd.addColorStop(0, '#3A84BD');
             grd.addColorStop(0.55, '#8CCBE0');
@@ -1402,6 +1411,14 @@
             const gx = -(player.bg % w);
             ctx.drawImage(bgUraGroundImage, gx, G.GROUND, w, h - G.GROUND);
             ctx.drawImage(bgUraGroundImage, gx + w, G.GROUND, w, h - G.GROUND);
+            return;
+          }
+
+          if (!isUraMode && currentStage.id === 2 && bgNoonLunchImage.naturalWidth) {
+            const gx = -Math.floor(player.bg % w);
+            for (let x = gx; x < w; x += w) {
+              ctx.drawImage(bgNoonLunchImage, 0, noonGrassRow, 360, 360 - noonGrassRow, x, G.GROUND, w, h - G.GROUND);
+            }
             return;
           }
 
