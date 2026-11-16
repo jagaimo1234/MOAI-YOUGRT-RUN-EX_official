@@ -1230,29 +1230,65 @@
 
           // --- STAGE 2: NOON (昼) ---
           else if (currentStage.id === 2) {
-            // Sky Gradient
             grd = ctx.createLinearGradient(0, 0, 0, h);
-            grd.addColorStop(0, '#0EA5E9');
-            grd.addColorStop(1, '#BAE6FD');
+            grd.addColorStop(0, '#3A84BD');
+            grd.addColorStop(0.55, '#8CCBE0');
+            grd.addColorStop(1, '#E5E9BD');
             ctx.fillStyle = grd;
             ctx.fillRect(0, 0, w, h);
 
-            // Fluffy Clouds
-            ctx.fillStyle = '#FFFFFF';
-            const cloudSpeed = t * 0.1;
-            const clouds = [
-              { x: 50, y: 30, s: 1 }, { x: 200, y: 50, s: 0.8 }, { x: 350, y: 25, s: 1.2 }
-            ];
-            clouds.forEach(c => {
-              const cx = (c.x - cloudSpeed * c.s) % (w + 100);
-              const drawX = cx < -50 ? cx + w + 100 : cx;
+            // Soft midday sun and stepped cloud banks.
+            const sunX = Math.floor(w * 0.74);
+            ctx.fillStyle = '#F9E9AA';
+            ctx.fillRect(sunX - 7, 26, 14, 14);
+            ctx.fillRect(sunX - 5, 24, 10, 18);
+            ctx.fillRect(sunX - 9, 28, 18, 10);
 
-              ctx.beginPath();
-              ctx.arc(drawX, c.y, 15 * c.s, 0, Math.PI * 2);
-              ctx.arc(drawX + 15 * c.s, c.y - 5 * c.s, 18 * c.s, 0, Math.PI * 2);
-              ctx.arc(drawX + 30 * c.s, c.y, 15 * c.s, 0, Math.PI * 2);
-              ctx.fill();
-            });
+            const cloudOffset = Math.floor(t * 0.05) % 232;
+            for (let x = -cloudOffset - 38; x < w; x += 58) {
+              const y = 54 + ((x + cloudOffset + 38) / 58 % 4) * 11;
+              ctx.fillStyle = '#BCDCE9';
+              ctx.fillRect(x, y + 6, 32, 5);
+              ctx.fillStyle = '#E8F4EF';
+              ctx.fillRect(x + 2, y + 2, 27, 6);
+              ctx.fillRect(x + 8, y - 3, 14, 6);
+              ctx.fillRect(x + 13, y - 6, 7, 4);
+            }
+
+            // Distant ridges scroll more slowly than the streets below.
+            for (let x = 0; x < w; x += 2) {
+              const distance = (x + player.bg * 0.09) * 0.033;
+              const ridge = Math.floor(h - 54 + Math.sin(distance) * 9 + Math.sin(distance * 2.6) * 4);
+              ctx.fillStyle = '#93BEB4';
+              ctx.fillRect(x, ridge, 2, h - ridge);
+            }
+
+            const streetOffset = Math.floor(player.bg * 0.21);
+            const firstBuilding = Math.floor(streetOffset / 18);
+            for (let i = firstBuilding; i <= firstBuilding + Math.ceil(w / 18); i++) {
+              const x = i * 18 - streetOffset;
+              const height = 12 + (i * 17 % 23);
+              const roof = h - 8 - height;
+              ctx.fillStyle = '#A6BCAD';
+              ctx.fillRect(x, roof, 15, height + 8);
+              ctx.fillStyle = '#91ADA6';
+              ctx.fillRect(x, roof, 15, 2);
+              ctx.fillRect(x + 12, roof + 2, 3, height + 6);
+              ctx.fillStyle = '#C9D6BB';
+              for (let y = roof + 5; y < h - 8; y += 6) {
+                ctx.fillRect(x + 3, y, 2, 3);
+                ctx.fillRect(x + 7, y, 2, 3);
+              }
+            }
+
+            // A low band of greenery connects the skyline to the existing ground.
+            const hedgeOffset = Math.floor(player.bg * 0.34) % 13;
+            ctx.fillStyle = '#819F84';
+            ctx.fillRect(0, h - 5, w, 5);
+            for (let x = -hedgeOffset; x < w; x += 13) {
+              ctx.fillRect(x, h - 9, 8, 5);
+              ctx.fillRect(x + 2, h - 11, 4, 3);
+            }
           }
 
           // --- STAGE 3: NIGHT (夜) ---
