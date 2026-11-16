@@ -951,9 +951,6 @@
         let bgNoonMountainsImageLoaded = false;
         bgNoonMountainsImage.onload = () => { bgNoonMountainsImageLoaded = true; };
 
-        const bgNoonArcadeImage = new Image();
-        bgNoonArcadeImage.src = 'bg_noon_arcade.svg';
-
         const bgNoonGroundImage = new Image();
         bgNoonGroundImage.src = 'bg_noon_ground.png';
         let bgNoonGroundImageLoaded = false;
@@ -1233,15 +1230,6 @@
 
           // --- STAGE 2: NOON (昼) ---
           else if (currentStage.id === 2) {
-            if (bgNoonArcadeImage.naturalWidth > 0) {
-              const skyHeight = G.GROUND;
-              const imageWidth = skyHeight * bgNoonArcadeImage.naturalWidth / bgNoonArcadeImage.naturalHeight;
-              const overhang = imageWidth - w;
-              const pan = (1 + Math.sin(player.bg * 0.001 - Math.PI / 2)) / 2;
-              ctx.drawImage(bgNoonArcadeImage, -Math.round(overhang * pan), 0, imageWidth, skyHeight);
-              return;
-            }
-
             grd = ctx.createLinearGradient(0, 0, 0, h);
             grd.addColorStop(0, '#3A84BD');
             grd.addColorStop(0.55, '#8CCBE0');
