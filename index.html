@@ -908,7 +908,7 @@
         companyImage.onload = () => { companyImageLoaded = true; };
 
         const meetingImage = new Image();
-        meetingImage.src = 'obstacle_meeting.png';
+        meetingImage.src = 'obstacle_meeting_cart.svg';
         let meetingImageLoaded = false;
         meetingImage.onload = () => { meetingImageLoaded = true; };
 
@@ -1065,6 +1065,35 @@
           beep(660, 0.1, 'square', 0.2);
         });
 
+        let meetingCall = null;
+        let lastMeetingCall = -Infinity;
+
+        function playMeetingCall() {
+          if (muted || !window.speechSynthesis || !window.SpeechSynthesisUtterance
+              || meetingCall || t - lastMeetingCall < 300) return;
+
+          const voice = speechSynthesis.getVoices().find(voice => /^ja\b/i.test(voice.lang));
+          if (!voice) return;
+          const line = new SpeechSynthesisUtterance('おーい、打ち合わせだぞ！');
+          line.lang = 'ja-JP';
+          line.voice = voice;
+          line.pitch = 0.72;
+          line.rate = 1.08;
+          line.volume = 0.55;
+          line.onend = line.onerror = () => {
+            if (meetingCall === line) meetingCall = null;
+          };
+          meetingCall = line;
+          lastMeetingCall = t;
+          speechSynthesis.speak(line);
+        }
+
+        function stopMeetingCall() {
+          if (!meetingCall) return;
+          meetingCall = null;
+          speechSynthesis.cancel();
+        }
+
         function updateMuteUI() {
           titleSoundBtn.textContent = muted
             ? '🔇 タップして音をオン'
@@ -1075,6 +1104,7 @@
 
           // --- ★ここから BGM連動を追記 ---
           if (muted) {
+            stopMeetingCall();
             // ミュートにしたらBGMタイマーを止める
             if (bgmTimer) {
               clearTimeout(bgmTimer);
@@ -2074,6 +2104,8 @@
           player.onG = true;
           player.speed = currentStage.speed;
           player.bg = 0;
+          stopMeetingCall();
+          lastMeetingCall = -Infinity;
           officePhoneFrame = 0;
           player.ammo = player.maxAmmo; // ステージ開始時にリロード
           workSpawn = 0;
@@ -2584,6 +2616,10 @@
             
             // Mk.IIは敵のスピードも速い
             d.x -= player.speed * (isMk2 ? 1.5 : 1.2);
+            if (d.type === 'Meeting' && !d.announced && d.x - 24 < G.W) {
+              d.announced = true;
+              playMeetingCall();
+            }
 
             // ゴールドモード中は体当たりで敵を殲滅
             if (isGold && !d.hit && Math.abs(d.x - player.x) < 30 && Math.abs(d.y - player.y + 16) < 30) {
