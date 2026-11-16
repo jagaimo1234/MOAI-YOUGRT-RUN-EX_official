@@ -250,6 +250,23 @@
       text-shadow: 2px 2px 0 #f00;
     }
 
+    #title-actions {
+      display: grid;
+      justify-items: center;
+      text-align: center;
+    }
+
+    #title-sound {
+      max-width: calc(100vw - 32px);
+      padding: 6px 12px;
+      border: 1px solid #fde047;
+      border-radius: 12px;
+      background: #111827;
+      color: #fde047;
+      font: 14px/1.5 'DotGothic16', monospace;
+      cursor: pointer;
+    }
+
     #mute {
       position: fixed;
       top: 8px;
@@ -558,9 +575,11 @@
         </div>
       </button>
 
-      <!-- The main interaction button -->
-          <div id="go" class="retro-text blink" style="cursor:pointer; padding:20px;">
-        TAP TO START
+      <div id="title-actions">
+        <div id="go" class="retro-text blink" style="cursor:pointer; padding:12px;">
+          TAP TO START
+        </div>
+        <button type="button" id="title-sound">🔊 音ありで遊ぶのがおすすめ · 試聴</button>
       </div>
 
       <div id="copyright">
@@ -1019,7 +1038,17 @@
         }
 
         const muteBtn = document.getElementById('mute');
+        const titleSoundBtn = document.getElementById('title-sound');
+        titleSoundBtn.addEventListener('click', () => {
+          muted = false;
+          updateMuteUI();
+          beep(660, 0.1, 'square', 0.2);
+        });
+
         function updateMuteUI() {
+          titleSoundBtn.textContent = muted
+            ? '🔇 タップして音をオン'
+            : '🔊 音ありで遊ぶのがおすすめ · 試聴';
           // --- 既存の処理 ---
           muteBtn.textContent = muted ? '🔇 音OFF' : '🔊 音ON';
           muteBtn.setAttribute('aria-pressed', String(!muted));
@@ -3006,6 +3035,7 @@
         sBtn.addEventListener('mousedown', e => { shoot() });
 
         addEventListener('keydown', e => {
+          if (e.code === 'Enter' && e.target instanceof HTMLButtonElement) return;
           if (e.code === 'Enter' && (state === 'START' || state === 'OVER')) {
             if (state === 'OVER') initGame(); else startGame();
           }
