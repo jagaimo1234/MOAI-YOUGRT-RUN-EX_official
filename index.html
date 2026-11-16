@@ -1992,6 +1992,12 @@
           ctx.font = '10px "Press Start 2P", "DotGothic16"';
           ctx.fillText(`THEME: ${stageTheme}`, G.W / 2, G.H / 2 + 15);
 
+          if (currentStage.id === 2 && !isUraMode) {
+            ctx.fillStyle = '#ffd780';
+            ctx.font = '9px "DotGothic16", monospace';
+            ctx.fillText('メジャーアップデート試験中', G.W / 2, G.H / 2 + 41);
+          }
+
           ctx.globalAlpha = 1; // 元に戻す
         }
 
@@ -2058,6 +2064,7 @@
           player.onG = true;
           player.speed = currentStage.speed;
           player.bg = 0;
+          officePhoneFrame = 0;
           player.ammo = player.maxAmmo; // ステージ開始時にリロード
           workSpawn = 0;
 
@@ -2294,8 +2301,19 @@
           }
         }
 
+        let officePhoneFrame = 0;
+
         function updatePlay() {
           t++;
+          if (currentStage.id === 2 && !isUraMode) {
+            // Two short trills, followed by a pause between calls.
+            const frame = officePhoneFrame++ % 480;
+            const burst = frame - (frame < 136 ? 90 : 136);
+            if (burst >= 0 && burst < 30 && burst % 3 === 0) {
+              beep(burst % 6 === 0 ? 865 : 1045, 0.04, 'triangle', 0.075);
+              beep(570, 0.035, 'square', 0.018);
+            }
+          }
           if (shootCooldown > 0) shootCooldown--;
           if (player.shootT > 0) player.shootT--;
           if (player.goldTimer > 0) player.goldTimer--;
