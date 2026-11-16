@@ -2055,6 +2055,7 @@
           player.x = 20;
           player.y = G.GROUND;
           player.vy = 0;
+          player.onG = true;
           player.speed = currentStage.speed;
           player.bg = 0;
           player.ammo = player.maxAmmo; // ステージ開始時にリロード
@@ -2266,6 +2267,30 @@
           }
         }
 
+        const lunchPlatform = { firstX: 210, spacing: 320, width: 56, y: G.GROUND - 34 };
+
+        function lunchPlatformX(distance) {
+          return lunchPlatform.firstX - distance
+            + Math.floor((distance + player.x - lunchPlatform.firstX) / lunchPlatform.spacing) * lunchPlatform.spacing;
+        }
+
+        function drawLunchPlatforms() {
+          if (currentStage.id !== 2 || isUraMode) return;
+          const { spacing, width, y } = lunchPlatform;
+          for (let x = lunchPlatformX(player.bg); x < G.W; x += spacing) {
+            const left = Math.floor(x);
+            ctx.fillStyle = '#795c47';
+            ctx.fillRect(left + 5, y + 5, 5, G.GROUND - y - 5);
+            ctx.fillRect(left + width - 10, y + 5, 5, G.GROUND - y - 5);
+            ctx.fillStyle = '#614435';
+            ctx.fillRect(left, y + 3, width, 5);
+            ctx.fillStyle = '#548044';
+            ctx.fillRect(left, y, width, 3);
+            ctx.fillStyle = '#a8c961';
+            ctx.fillRect(left, y, width, 1);
+          }
+        }
+
         function updatePlay() {
           t++;
           if (shootCooldown > 0) shootCooldown--;
@@ -2275,10 +2300,22 @@
           player.bg += player.speed;
           player.bob += 0.2;
 
+          const previousY = player.y;
           player.vy += 0.44;
           player.y += player.vy;
-          if (player.y >= G.GROUND) {
-            player.y = G.GROUND;
+
+          let floorY = G.GROUND;
+          if (currentStage.id === 2 && !isUraMode) {
+            const platformX = Math.floor(lunchPlatformX(player.bg));
+            if (player.x >= platformX && player.x < platformX + lunchPlatform.width
+                && previousY <= lunchPlatform.y) {
+              floorY = lunchPlatform.y;
+            }
+          }
+
+          player.onG = false;
+          if (player.vy >= 0 && player.y >= floorY) {
+            player.y = floorY;
             player.vy = 0;
             player.onG = true;
           }
@@ -2825,6 +2862,7 @@
           if (state === 'PLAY' || state === 'CLEAR' || state === 'TRANSITION' || state === 'TITLE' || state === 'ENDING' || state === 'OVER') {
             drawSky();
             drawGround();
+            drawLunchPlatforms();
             
             items.forEach(drawBottle);
 
