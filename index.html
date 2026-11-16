@@ -951,9 +951,9 @@
         let bgNoonMountainsImageLoaded = false;
         bgNoonMountainsImage.onload = () => { bgNoonMountainsImageLoaded = true; };
 
-        const bgNoonLunchImage = new Image();
-        bgNoonLunchImage.src = 'bg_noon_lunch.svg';
-        const noonGrassRow = 261;
+        const bgNoonOfficeImage = new Image();
+        bgNoonOfficeImage.src = 'bg_noon_office.svg';
+        const officeFloorRow = 271;
 
         const bgNoonGroundImage = new Image();
         bgNoonGroundImage.src = 'bg_noon_ground.png';
@@ -1234,8 +1234,8 @@
 
           // --- STAGE 2: NOON (昼) ---
           else if (currentStage.id === 2) {
-            if (!isUraMode && bgNoonLunchImage.naturalWidth) {
-              ctx.drawImage(bgNoonLunchImage, 0, 0, 360, noonGrassRow, 0, 0, w, G.GROUND);
+            if (!isUraMode && bgNoonOfficeImage.naturalWidth) {
+              ctx.drawImage(bgNoonOfficeImage, 0, 0, 360, officeFloorRow, 0, 0, w, G.GROUND);
               return;
             }
 
@@ -1414,10 +1414,10 @@
             return;
           }
 
-          if (!isUraMode && currentStage.id === 2 && bgNoonLunchImage.naturalWidth) {
+          if (!isUraMode && currentStage.id === 2 && bgNoonOfficeImage.naturalWidth) {
             const gx = -Math.floor(player.bg % w);
             for (let x = gx; x < w; x += w) {
-              ctx.drawImage(bgNoonLunchImage, 0, noonGrassRow, 360, 360 - noonGrassRow, x, G.GROUND, w, h - G.GROUND);
+              ctx.drawImage(bgNoonOfficeImage, 0, officeFloorRow, 360, 360 - officeFloorRow, x, G.GROUND, w, h - G.GROUND);
             }
             return;
           }
@@ -2279,15 +2279,18 @@
           const { spacing, width, y } = lunchPlatform;
           for (let x = lunchPlatformX(player.bg); x < G.W; x += spacing) {
             const left = Math.floor(x);
-            ctx.fillStyle = '#795c47';
-            ctx.fillRect(left + 5, y + 5, 5, G.GROUND - y - 5);
-            ctx.fillRect(left + width - 10, y + 5, 5, G.GROUND - y - 5);
-            ctx.fillStyle = '#614435';
-            ctx.fillRect(left, y + 3, width, 5);
-            ctx.fillStyle = '#548044';
+            ctx.fillStyle = '#455761';
+            ctx.fillRect(left + 5, y + 6, 6, G.GROUND - y - 6);
+            ctx.fillRect(left + width - 11, y + 6, 6, G.GROUND - y - 6);
+            ctx.fillStyle = '#82939a';
+            ctx.fillRect(left + 6, y + 8, 2, G.GROUND - y - 11);
+            ctx.fillRect(left + width - 10, y + 8, 2, G.GROUND - y - 11);
+            ctx.fillStyle = '#8d7963';
+            ctx.fillRect(left, y + 2, width, 5);
+            ctx.fillStyle = '#dec9a4';
             ctx.fillRect(left, y, width, 3);
-            ctx.fillStyle = '#a8c961';
-            ctx.fillRect(left, y, width, 1);
+            ctx.fillStyle = '#fff0d1';
+            ctx.fillRect(left + 1, y, width - 2, 1);
           }
         }
 
@@ -2297,6 +2300,7 @@
           if (player.shootT > 0) player.shootT--;
           if (player.goldTimer > 0) player.goldTimer--;
 
+          const previousDistance = player.bg;
           player.bg += player.speed;
           player.bob += 0.2;
 
@@ -2307,6 +2311,15 @@
           let floorY = G.GROUND;
           if (currentStage.id === 2 && !isUraMode) {
             const platformX = Math.floor(lunchPlatformX(player.bg));
+            const firstBottle = lunchPlatform.firstX + lunchPlatform.width / 2;
+            const nextBottle = firstBottle + Math.max(0, Math.floor(
+              (player.bg + G.W + 24 - firstBottle) / lunchPlatform.spacing
+            )) * lunchPlatform.spacing;
+            const spawnDistance = nextBottle - G.W - 24;
+            if (previousDistance < spawnDistance && player.bg >= spawnDistance) {
+              items.push({ x: nextBottle - player.bg, y: lunchPlatform.y - 8,
+                score: 10, terraceX: nextBottle });
+            }
             if (player.x >= platformX && player.x < platformX + lunchPlatform.width
                 && previousY <= lunchPlatform.y) {
               floorY = lunchPlatform.y;
@@ -2509,10 +2522,13 @@
           }
 
           // Move & Collide (省略)
-          items.forEach(it => it.x -= player.speed);
+          items.forEach(it => {
+            it.x = it.terraceX === undefined ? it.x - player.speed : it.terraceX - player.bg;
+          });
           for (let i = items.length - 1; i >= 0; i--) {
             const it = items[i];
-            if (!it.taken && Math.abs(it.x - player.x) < 16 && Math.abs(it.y - player.y + 10) < 22) {
+            const canTake = it.terraceX === undefined || (player.onG && player.y === lunchPlatform.y);
+            if (canTake && !it.taken && Math.abs(it.x - player.x) < 16 && Math.abs(it.y - player.y + 10) < 22) {
               it.taken = true;
               
               if (it.type === 'Gold') {
