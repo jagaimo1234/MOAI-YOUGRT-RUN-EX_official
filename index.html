@@ -1788,6 +1788,13 @@
           ctx.drawImage(meetingImage, x - frameWidth / 2, y - frameHeight + recoil, frameWidth, frameHeight - recoil);
           if (windup || slam) {
             const fistY = windup ? y - 33 : y - 13;
+            if (windup) {
+              ctx.fillStyle = '#7a3225';
+              ctx.fillRect(x - 12, y - 46, 7, 9);
+              ctx.fillStyle = '#fff0a0';
+              ctx.fillRect(x - 9, y - 45, 1, 4);
+              ctx.fillRect(x - 9, y - 40, 1, 1);
+            }
             ctx.fillStyle = '#21202b';
             ctx.fillRect(x - 15, fistY, 7, 6);
             ctx.fillStyle = '#efae78';
@@ -2156,6 +2163,7 @@
           stopMeetingCall();
           lastMeetingCall = -Infinity;
           officePhoneFrame = 0;
+          firstMeetingScheduled = false;
           player.ammo = player.maxAmmo; // ステージ開始時にリロード
           workSpawn = 0;
 
@@ -2394,6 +2402,7 @@
         }
 
         let officePhoneFrame = 0;
+        let firstMeetingScheduled = false;
 
         function updatePlay() {
           t++;
@@ -2492,6 +2501,11 @@
                     }
                   }
                 }
+              }
+
+              if (currentStage.id === 2 && !isUraMode && !firstMeetingScheduled && player.bg >= 100) {
+                type = 'Meeting';
+                firstMeetingScheduled = true;
               }
 
               if (type) {
@@ -2677,14 +2691,15 @@
             const isGold = (player.goldTimer > 0);
             
             // Mk.IIは敵のスピードも速い
-            d.x -= player.speed * (isMk2 ? 1.5 : 1.2);
-            if (d.type === 'Meeting' && !d.announced && d.x - 24 < G.W) {
+            const slowingForSlam = d.paperWindup > 0;
+            d.x -= player.speed * (isMk2 ? 1.5 : 1.2) * (slowingForSlam ? 0.55 : 1);
+            if (d.type === 'Meeting' && !d.announced && d.x + 8 < G.W) {
               d.announced = true;
-              if (currentStage.id === 2 && !isUraMode) d.paperWindup = 34;
+              if (currentStage.id === 2 && !isUraMode) d.paperWindup = 26;
               playMeetingCall();
             }
             if (!d.hit && d.paperWindup > 0 && --d.paperWindup === 0) {
-              d.paperSlam = 7;
+              d.paperSlam = 10;
               meetingPapers.push({ x: d.x - 22 });
               beep(130, 0.09, 'triangle', 0.28);
             }
