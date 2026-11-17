@@ -1182,6 +1182,7 @@
           isCharging: false, beamWidth: 0
         };
         const bossShots = [];
+        const meetingPapers = [];
         const bullets = [];
 
         // Ending (省略)
@@ -1781,7 +1782,37 @@
           const x = (d.x) | 0;
           const y = G.GROUND;
 
-          ctx.drawImage(meetingImage, 0, 0, meetingImage.width, meetingImage.height, x - frameWidth / 2, y - frameHeight, frameWidth, frameHeight);
+          const windup = d.paperWindup > 0;
+          const slam = d.paperSlam > 0;
+          const recoil = slam ? 2 : 0;
+          ctx.drawImage(meetingImage, x - frameWidth / 2, y - frameHeight + recoil, frameWidth, frameHeight - recoil);
+          if (windup || slam) {
+            const fistY = windup ? y - 33 : y - 13;
+            ctx.fillStyle = '#21202b';
+            ctx.fillRect(x - 15, fistY, 7, 6);
+            ctx.fillStyle = '#efae78';
+            ctx.fillRect(x - 14, fistY + 1, 5, 4);
+            ctx.fillStyle = '#444454';
+            ctx.fillRect(x - 10, fistY + (windup ? 5 : -4), 3, 6);
+          }
+          if (slam) {
+            ctx.fillStyle = '#ffe294';
+            ctx.fillRect(x - 18, y - 12, 3, 1);
+            ctx.fillRect(x - 18, y - 17, 2, 2);
+            ctx.fillRect(x - 8, y - 16, 2, 2);
+          }
+        }
+
+        function drawMeetingPaper(paper) {
+          const x = Math.round(paper.x);
+          const y = G.GROUND - 12 + Math.round(Math.sin(t * 0.45) * 2);
+          ctx.fillStyle = '#483a35';
+          ctx.fillRect(x - 5, y - 4, 10, 8);
+          ctx.fillStyle = '#fff4d5';
+          ctx.fillRect(x - 4, y - 3, 8, 6);
+          ctx.fillStyle = '#ae8c70';
+          ctx.fillRect(x - 2, y - 1, 5, 1);
+          ctx.fillRect(x - 2, y + 1, 4, 1);
         }
 
         function drawCelery(d) {
@@ -2113,6 +2144,7 @@
           items.length = 0;
           obstacles.length = 0;
           bossShots.length = 0;
+          meetingPapers.length = 0;
           bullets.length = 0;
 
           player.x = 20;
@@ -2626,6 +2658,18 @@
             if (it.x < -20 || it.taken) items.splice(i, 1);
           }
 
+          for (let i = meetingPapers.length - 1; i >= 0; i--) {
+            const paper = meetingPapers[i];
+            paper.x -= player.speed + 1.7;
+            if (Math.abs(paper.x - player.x) < 9 && player.y > G.GROUND - 16) {
+              meetingPapers.splice(i, 1);
+              damagePlayer(1);
+              if (state !== 'PLAY') return;
+            } else if (paper.x < -8) {
+              meetingPapers.splice(i, 1);
+            }
+          }
+
           // Obstacles
           for (let i = obstacles.length - 1; i >= 0; i--) {
             const d = obstacles[i];
@@ -2636,7 +2680,16 @@
             d.x -= player.speed * (isMk2 ? 1.5 : 1.2);
             if (d.type === 'Meeting' && !d.announced && d.x - 24 < G.W) {
               d.announced = true;
+              if (currentStage.id === 2 && !isUraMode) d.paperWindup = 34;
               playMeetingCall();
+            }
+            if (!d.hit && d.paperWindup > 0 && --d.paperWindup === 0) {
+              d.paperSlam = 7;
+              meetingPapers.push({ x: d.x - 22 });
+              beep(130, 0.09, 'triangle', 0.28);
+            }
+            if (d.paperSlam > 0) {
+              d.paperSlam--;
             }
 
             // ゴールドモード中は体当たりで敵を殲滅
@@ -3024,6 +3077,7 @@
               drawBoss();
             }
             bossShots.forEach(drawMoaiShot);
+            meetingPapers.forEach(drawMeetingPaper);
 
             // ★ 敵名タグの描画
             if (state === 'PLAY' || state === 'CLEAR' || state === 'TITLE') {
